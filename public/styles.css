@@ -21,7 +21,7 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  font-size: 14px;
+  font-size: 112.5%;
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -44,6 +44,7 @@
 }
 body {
   margin: 0;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--text);
 }
@@ -81,7 +82,7 @@ textarea {
   border-radius: 9px;
   color: var(--text);
   min-width: 0;
-  min-height: 44px;
+  min-height: 48px;
   padding: 10px 12px;
   outline: none;
 }
@@ -117,18 +118,18 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 30px;
+  font-size: 1.888889rem;
   font-weight: 650;
   letter-spacing: -1.1px;
   line-height: 1.2;
 }
 h2 {
-  font-size: 20px;
+  font-size: 1.333333rem;
   font-weight: 650;
   letter-spacing: -0.4px;
 }
 h3 {
-  font-size: 16px;
+  font-size: 1.111111rem;
   font-weight: 600;
 }
 p {
@@ -136,7 +137,7 @@ p {
 }
 small {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.888889rem;
 }
 hr {
   border: 0;
@@ -151,14 +152,14 @@ hr {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 43px;
+  min-height: 48px;
   padding: 10px 15px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: var(--surface);
   font-weight: 550;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 0.944444rem;
   transition:
     background 0.15s,
     border-color 0.15s,
@@ -192,9 +193,9 @@ hr {
   color: #fff;
 }
 .btn.small {
-  min-height: 34px;
-  padding: 6px 9px;
-  font-size: 12px;
+  min-height: 40px;
+  padding: 7px 10px;
+  font-size: 0.888889rem;
   margin: 2px;
 }
 .btn.small svg {
@@ -205,7 +206,7 @@ hr {
   width: 37px;
   padding: 0;
   min-height: 36px;
-  font-size: 20px;
+  font-size: 1.333333rem;
 }
 .btn.wide {
   width: 100%;
@@ -274,13 +275,13 @@ hr {
 }
 .boot span {
   color: var(--accent);
-  font-size: 20px;
+  font-size: 1.333333rem;
 }
 .boot p {
   color: var(--muted);
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 0.777778rem;
   letter-spacing: 1.8px;
   font-weight: 650;
   color: var(--accent);
@@ -320,7 +321,7 @@ hr {
   min-width: 0;
 }
 .company strong {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
   max-width: 240px;
   overflow: hidden;
@@ -328,7 +329,7 @@ hr {
   white-space: nowrap;
 }
 .company small {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .top-actions {
   display: flex;
@@ -340,11 +341,11 @@ hr {
   border: 0;
   background: transparent;
   padding: 5px 20px 5px 6px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
 }
 .connection {
-  font-size: 11px;
+  font-size: 0.833333rem;
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -370,11 +371,11 @@ hr {
   color: #fff;
   text-align: center;
   padding: 10px;
-  font-size: 13px;
+  font-size: 0.944444rem;
 }
 .pos-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
+  grid-template-columns: minmax(0, 1fr) 430px;
   min-height: calc(100dvh - 85px);
 }
 .catalog-area {
@@ -397,7 +398,7 @@ hr {
   gap: 12px;
 }
 .section-title p {
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
   margin-top: 9px;
 }
@@ -418,7 +419,7 @@ hr {
 .pos-currency select {
   border: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: 0.888889rem;
   max-width: 160px;
 }
 .search-wrap {
@@ -455,7 +456,7 @@ kbd {
   line-height: 1;
   color: var(--muted);
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 0.777778rem;
   font-weight: 500;
 }
 .categories {
@@ -472,7 +473,7 @@ kbd {
   color: var(--muted);
   padding: 6px 14px;
   border-radius: 7px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   white-space: nowrap;
 }
 .categories button.active {
@@ -486,7 +487,7 @@ kbd {
 }
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 16px;
   align-content: start;
   flex: 1;
@@ -544,7 +545,7 @@ kbd {
   position: absolute;
   left: 10px;
   top: 10px;
-  font-size: 9px;
+  font-size: 0.777778rem;
   letter-spacing: 0.6px;
   background: #111015c9;
   color: #fff;
@@ -557,7 +558,7 @@ kbd {
   left: 9px;
   background: #111015d9;
   color: #e0dceb;
-  font-size: 10px;
+  font-size: 0.777778rem;
   padding: 4px 7px;
   border-radius: 4px;
 }
@@ -572,10 +573,10 @@ kbd {
   min-height: 117px;
 }
 .product-info > small {
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .product-info > strong {
-  font-size: 13px;
+  font-size: 0.944444rem;
   font-weight: 550;
   line-height: 1.4;
   min-height: 20px;
@@ -588,7 +589,7 @@ kbd {
   padding-top: 9px;
 }
 .product-info b {
-  font-size: 16px;
+  font-size: 1.111111rem;
   font-weight: 650;
   letter-spacing: -0.3px;
 }
@@ -611,7 +612,7 @@ kbd {
   justify-content: space-between;
   gap: 16px;
   margin-top: 28px;
-  font-size: 10px;
+  font-size: 0.777778rem;
   color: var(--muted);
 }
 .catalog-footer i {
@@ -646,11 +647,11 @@ kbd {
   color: var(--accent);
 }
 .cart-heading h2 {
-  font-size: 16px;
+  font-size: 1.111111rem;
   letter-spacing: -0.3px;
 }
 .cart-heading small {
-  font-size: 10px;
+  font-size: 0.777778rem;
   display: block;
   margin-top: 4px;
 }
@@ -684,7 +685,7 @@ kbd {
   width: 100%;
   border: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: 0.888889rem;
   padding: 8px 4px;
   box-shadow: none;
 }
@@ -734,13 +735,13 @@ kbd {
   flex: 1;
 }
 .cart-item-copy strong {
-  font-size: 12px;
+  font-size: 0.888889rem;
   font-weight: 550;
   line-height: 1.4;
   display: block;
 }
 .cart-item-copy small {
-  font-size: 10px;
+  font-size: 0.777778rem;
   display: block;
   margin-top: 5px;
 }
@@ -752,23 +753,23 @@ kbd {
   border-radius: 6px;
   width: max-content;
   overflow: hidden;
-  height: 28px;
+  height: 38px;
 }
 .stepper button {
   border: 0;
   background: var(--surface);
-  width: 26px;
-  height: 26px;
-  font-size: 15px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.055556rem;
 }
 .stepper input {
-  width: 48px;
+  width: 56px;
   border: 0;
   border-radius: 0;
   text-align: center;
-  font-size: 11px;
+  font-size: 0.833333rem;
   padding: 2px;
-  min-height: 26px;
+  min-height: 36px;
   background: var(--panel);
   box-shadow: none;
 }
@@ -779,7 +780,7 @@ kbd {
   gap: 16px;
 }
 .cart-line-end b {
-  font-size: 12px;
+  font-size: 0.888889rem;
   white-space: nowrap;
 }
 .cart-line-end button {
@@ -804,10 +805,10 @@ kbd {
   margin-bottom: 15px;
 }
 .sale-options > .toggle {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .sale-options .btn {
-  font-size: 11px;
+  font-size: 0.833333rem;
   min-height: 30px;
   padding: 4px 0;
 }
@@ -820,7 +821,7 @@ kbd {
   justify-content: space-between;
   gap: 15px;
   align-items: center;
-  font-size: 12px;
+  font-size: 0.888889rem;
   margin: 12px 0;
 }
 .total-row > span {
@@ -830,7 +831,7 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
   gap: 12px;
 }
@@ -838,7 +839,7 @@ kbd {
   width: 85px;
   text-align: right;
   min-height: 33px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   padding: 5px 8px;
   background: var(--surface);
 }
@@ -852,16 +853,16 @@ kbd {
   gap: 14px;
 }
 .grand-total > span {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
 }
 .grand-total small {
-  font-size: 10px;
+  font-size: 0.777778rem;
   margin-left: 5px;
   font-weight: 400;
 }
 .grand-total strong {
-  font-size: 30px;
+  font-size: 1.888889rem;
   letter-spacing: -1.3px;
   font-weight: 650;
 }
@@ -870,13 +871,13 @@ kbd {
   min-height: 52px;
   justify-content: flex-start;
   padding: 14px 18px;
-  font-size: 13px;
+  font-size: 0.944444rem;
 }
 .checkout kbd {
   margin-left: auto;
   color: #fff;
   border-color: #ffffff50;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .checkout > svg {
   width: 18px;
@@ -884,7 +885,7 @@ kbd {
 }
 .cart-note {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.777778rem;
   text-align: center;
   margin-top: 12px;
   display: flex;
@@ -922,11 +923,11 @@ kbd {
   margin-bottom: 5px;
 }
 .empty h3 {
-  font-size: 15px;
+  font-size: 1.055556rem;
   color: var(--text);
 }
 .empty p {
-  font-size: 12px;
+  font-size: 0.888889rem;
   max-width: 290px;
   line-height: 1.7;
 }
@@ -935,11 +936,11 @@ kbd {
   padding: 30px 10px;
 }
 .cart-items .empty h3 {
-  font-size: 14px;
+  font-size: 1rem;
 }
 .cart-items .empty p {
   max-width: 210px;
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .cart-items .empty > svg {
   width: 30px;
@@ -968,14 +969,14 @@ kbd {
   padding: 20px 0;
 }
 .no-catalog .cart-item-copy strong {
-  font-size: 16px;
+  font-size: 1.111111rem;
 }
 .no-catalog .cart-line-end b {
-  font-size: 17px;
+  font-size: 1.166667rem;
 }
 .erp-shell {
   display: grid;
-  grid-template-columns: 205px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: calc(100dvh - 85px);
 }
 .erp-nav {
@@ -999,7 +1000,7 @@ kbd {
   border-radius: 8px;
   text-align: left;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.888889rem;
   min-height: 44px;
 }
 .erp-nav > button.active {
@@ -1017,7 +1018,7 @@ kbd {
 }
 .order-count {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 0.777778rem;
   padding: 3px 6px;
   border-radius: 4px;
   background: var(--surface);
@@ -1028,12 +1029,12 @@ kbd {
   padding: 18px 8px 0;
 }
 .nav-bottom small {
-  font-size: 11px;
+  font-size: 0.833333rem;
   display: block;
 }
 .nav-bottom .btn {
   padding-left: 0;
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .erp-content {
   padding: 35px 30px 60px;
@@ -1049,10 +1050,10 @@ kbd {
   margin-bottom: 30px;
 }
 .page-title h1 {
-  font-size: 28px;
+  font-size: 1.777778rem;
 }
 .page-title p {
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
   max-width: 650px;
   margin-top: 10px;
@@ -1084,7 +1085,7 @@ kbd {
 }
 .panel > h2 {
   margin-bottom: 22px;
-  font-size: 17px;
+  font-size: 1.166667rem;
 }
 .panel-title {
   display: flex;
@@ -1093,7 +1094,7 @@ kbd {
   margin-bottom: 20px;
 }
 .panel-title h2 {
-  font-size: 17px;
+  font-size: 1.166667rem;
 }
 .table-wrap {
   overflow: auto;
@@ -1106,13 +1107,13 @@ table {
   border-collapse: collapse;
   width: 100%;
   text-align: left;
-  font-size: 12px;
+  font-size: 0.888889rem;
   background: var(--panel);
 }
 th {
   background: var(--surface);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 0.777778rem;
   font-weight: 550;
   padding: 14px;
   white-space: nowrap;
@@ -1135,10 +1136,10 @@ tr:hover td {
   background: color-mix(in srgb, var(--surface) 40%, transparent);
 }
 td .btn {
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .badge {
-  font-size: 10px;
+  font-size: 0.777778rem;
   display: inline-flex;
   padding: 4px 7px;
   background: var(--surface);
@@ -1175,11 +1176,11 @@ td .btn {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 0.833333rem;
   color: var(--muted);
 }
 .metric > div b {
-  font-size: 10px;
+  font-size: 0.777778rem;
   background: var(--soft);
   color: var(--accent);
   padding: 4px 6px;
@@ -1187,14 +1188,14 @@ td .btn {
   font-weight: 500;
 }
 .metric > strong {
-  font-size: 25px;
+  font-size: 1.611111rem;
   letter-spacing: -0.8px;
   display: block;
   margin: 19px 0 12px;
   font-weight: 600;
 }
 .metric > p {
-  font-size: 10px;
+  font-size: 0.777778rem;
   color: var(--muted);
 }
 .metric > p span {
@@ -1204,7 +1205,7 @@ td .btn {
   border-top: 1px solid var(--line);
   padding-top: 10px;
   margin-top: 15px;
-  font-size: 9px;
+  font-size: 0.777778rem;
   color: var(--muted);
   display: grid;
   gap: 8px;
@@ -1215,7 +1216,7 @@ td .btn {
   gap: 6px;
 }
 .metric footer b {
-  font-size: 10px;
+  font-size: 0.777778rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -1238,14 +1239,14 @@ td .btn {
   margin-bottom: 22px;
 }
 .order-card header strong {
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--accent);
 }
 .order-card > h3 {
-  font-size: 16px;
+  font-size: 1.111111rem;
 }
 .order-card p {
-  font-size: 11px;
+  font-size: 0.833333rem;
   color: var(--muted);
   margin-top: 7px;
   overflow-wrap: anywhere;
@@ -1253,7 +1254,7 @@ td .btn {
 .order-card > small {
   display: block;
   margin-top: 8px;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .order-card ul {
   list-style: none;
@@ -1265,7 +1266,7 @@ td .btn {
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 0.888889rem;
   margin: 12px 0;
 }
 .order-card li b {
@@ -1279,7 +1280,7 @@ td .btn {
   margin-top: 19px;
 }
 .order-card footer .btn {
-  font-size: 11px;
+  font-size: 0.833333rem;
   flex: 1;
 }
 .order-card footer .text-button {
@@ -1296,7 +1297,7 @@ td .btn {
 }
 .settings-form h3 {
   margin: 15px 0 20px;
-  font-size: 16px;
+  font-size: 1.111111rem;
 }
 .form-grid {
   display: grid;
@@ -1315,7 +1316,7 @@ td .btn {
   margin: 0;
 }
 .field > span {
-  font-size: 12px;
+  font-size: 0.888889rem;
   font-weight: 500;
   color: var(--muted);
 }
@@ -1326,14 +1327,14 @@ td .btn {
 .field textarea,
 .field select {
   width: 100%;
-  font-size: 13px;
+  font-size: 0.944444rem;
   line-height: 1.5;
 }
 .toggle {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   line-height: 1.6;
   color: var(--text);
   cursor: pointer;
@@ -1363,13 +1364,13 @@ td .btn {
   text-align: center;
 }
 .hint {
-  font-size: 12px;
+  font-size: 0.888889rem;
   line-height: 1.8;
   color: var(--muted);
   margin: 14px 0 22px;
 }
 .notice {
-  font-size: 12px;
+  font-size: 0.888889rem;
   line-height: 1.7;
   padding: 14px 18px;
   background: var(--soft);
@@ -1384,7 +1385,7 @@ td .btn {
   border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line));
   padding: 12px;
   border-radius: 7px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   margin: 15px 0;
   line-height: 1.7;
 }
@@ -1406,14 +1407,14 @@ td .btn {
 .image-upload > div small {
   display: block;
   margin-top: 9px;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .file-label {
   cursor: pointer;
 }
 .image-upload > .btn {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .layout-previews {
   display: grid;
@@ -1457,7 +1458,7 @@ td .btn {
   display: block;
   text-align: center;
   margin-top: 9px;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .layout-preview.classic {
   padding-left: 24px;
@@ -1480,11 +1481,11 @@ td .btn {
   margin: 18px 0 25px;
 }
 .price-grid b {
-  font-size: 11px;
+  font-size: 0.833333rem;
   color: var(--muted);
 }
 .price-grid strong {
-  font-size: 12px;
+  font-size: 0.888889rem;
   font-weight: 550;
 }
 .price-grid input {
@@ -1517,13 +1518,13 @@ td .btn {
 }
 .share-copy > small {
   display: block;
-  font-size: 11px;
+  font-size: 0.833333rem;
   margin-bottom: 12px;
 }
 .share-copy > a {
   display: block;
   overflow-wrap: anywhere;
-  font-size: 12px;
+  font-size: 0.888889rem;
   line-height: 1.8;
 }
 .share-copy > .actions {
@@ -1536,16 +1537,16 @@ td .btn {
 }
 .access-code small {
   display: block;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 .access-code strong {
-  font-size: 22px;
+  font-size: 1.444444rem;
   letter-spacing: 2px;
   display: block;
   margin: 7px 0;
 }
 .access-code a {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .invite-hero {
   display: flex;
@@ -1604,7 +1605,7 @@ td .btn {
   color: var(--muted);
 }
 .menu-grid strong {
-  font-size: 12px;
+  font-size: 0.888889rem;
   font-weight: 550;
 }
 .menu-profile {
@@ -1617,16 +1618,16 @@ td .btn {
   gap: 10px;
 }
 .menu-profile strong {
-  font-size: 12px;
+  font-size: 0.888889rem;
   display: block;
 }
 .menu-profile small {
-  font-size: 10px;
+  font-size: 0.777778rem;
   display: block;
   margin-top: 5px;
 }
 .menu-profile > .btn {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 dialog {
   padding: 0;
@@ -1664,14 +1665,14 @@ dialog[open] {
   z-index: 2;
 }
 .modal-head small {
-  font-size: 9px;
+  font-size: 0.777778rem;
   letter-spacing: 1.6px;
   color: var(--accent);
   display: block;
   margin-bottom: 8px;
 }
 .modal-head h2 {
-  font-size: 21px;
+  font-size: 1.388889rem;
 }
 .modal-body {
   padding: 25px 26px;
@@ -1704,7 +1705,7 @@ dialog[open] {
 }
 .payment-total small {
   display: block;
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .payment-total strong {
   font-size: 40px;
@@ -1725,10 +1726,10 @@ dialog[open] {
   margin: 20px 0;
 }
 .tender-summary span {
-  font-size: 12px;
+  font-size: 0.888889rem;
 }
 .tender-summary strong {
-  font-size: 26px;
+  font-size: 1.666667rem;
   letter-spacing: -0.7px;
 }
 .receipt {
@@ -1817,12 +1818,12 @@ dialog[open] {
   margin-bottom: 20px;
 }
 .success-state h3 {
-  font-size: 24px;
+  font-size: 1.555556rem;
   color: var(--accent);
   margin-bottom: 15px;
 }
 .success-state p {
-  font-size: 13px;
+  font-size: 0.944444rem;
   color: var(--muted);
 }
 #toast {
@@ -1837,7 +1838,7 @@ dialog[open] {
   border: 1px solid #dbd1e9;
   border-radius: 10px;
   padding: 14px 20px;
-  font-size: 13px;
+  font-size: 0.944444rem;
   box-shadow: 0 10px 40px #0004;
   opacity: 0;
   pointer-events: none;
@@ -1884,7 +1885,7 @@ dialog[open] {
 .auth-visual small {
   letter-spacing: 3px;
   color: #b9a0e0;
-  font-size: 12px;
+  font-size: 0.888889rem;
 }
 .auth-visual h1 {
   font-size: clamp(35px, 3.5vw, 55px);
@@ -1894,7 +1895,7 @@ dialog[open] {
   margin: 30px 0;
 }
 .auth-visual p {
-  font-size: 14px;
+  font-size: 1rem;
   color: #beb0cc;
   max-width: 360px;
 }
@@ -1911,7 +1912,7 @@ dialog[open] {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: 0.777778rem;
   color: #e1d6ed;
   background: #21162f;
 }
@@ -1920,7 +1921,7 @@ dialog[open] {
   height: 15px;
 }
 .auth-visual footer {
-  font-size: 10px;
+  font-size: 0.777778rem;
   color: #b9a0d0;
   position: relative;
   z-index: 1;
@@ -1957,23 +1958,23 @@ dialog[open] {
   align-items: center;
 }
 .auth-top > .btn {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .auth-top .language-select {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .auth-form {
   width: min(365px, 100%);
   margin: 50px auto;
 }
 .auth-form h2 {
-  font-size: 29px;
+  font-size: 1.833333rem;
   font-weight: 600;
   letter-spacing: -1px;
   margin-bottom: 16px;
 }
 .auth-form > p {
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
   line-height: 1.85;
   margin-bottom: 25px;
@@ -1990,7 +1991,7 @@ dialog[open] {
 .segmented > .btn {
   flex: 1;
   min-height: 36px;
-  font-size: 11px;
+  font-size: 0.833333rem;
   white-space: normal;
   border: 0;
   background: transparent;
@@ -2001,23 +2002,23 @@ dialog[open] {
   color: var(--accent);
 }
 .auth-form > .eyebrow {
-  font-size: 9px;
+  font-size: 0.777778rem;
   margin-bottom: 15px;
 }
 .auth-form .field > span {
-  font-size: 11px;
+  font-size: 0.833333rem;
 }
 .auth-form .field {
   margin-bottom: 20px;
 }
 .auth-form form > .btn {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 0.888889rem;
   justify-content: space-between;
 }
 .auth-foot {
   text-align: center;
-  font-size: 9px;
+  font-size: 0.777778rem;
   letter-spacing: 1px;
   padding-bottom: 5px;
 }
@@ -2027,7 +2028,7 @@ dialog[open] {
   padding: 0 20px;
 }
 .collaborate-page > p {
-  font-size: 13px;
+  font-size: 0.944444rem;
   color: var(--muted);
   margin: 18px 0 28px;
 }
@@ -2046,10 +2047,10 @@ dialog[open] {
   padding: 30px;
 }
 .join-page h1 {
-  font-size: 25px;
+  font-size: 1.611111rem;
 }
 .join-page p {
-  font-size: 12px;
+  font-size: 0.888889rem;
   color: var(--muted);
   margin: 15px 0 25px;
 }
@@ -2128,7 +2129,7 @@ dialog[open] {
 .print-report footer {
   text-align: center;
   margin-top: 25px;
-  font-size: 10px;
+  font-size: 0.777778rem;
 }
 :root[data-layout="classic"] .product-grid {
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -2149,7 +2150,7 @@ dialog[open] {
   height: 30px;
 }
 :root[data-layout="classic"] .product-code {
-  font-size: 7px;
+  font-size: 0.777778rem;
   left: 4px;
   top: 5px;
 }
@@ -2158,10 +2159,10 @@ dialog[open] {
   flex: 1;
 }
 :root[data-layout="classic"] .product-info small {
-  font-size: 9px;
+  font-size: 0.777778rem;
 }
 :root[data-layout="classic"] .product-info b {
-  font-size: 14px;
+  font-size: 1rem;
 }
 :root[data-layout="classic"] .pos-shell {
   grid-template-columns: minmax(0, 1fr) 430px;
@@ -2210,10 +2211,10 @@ dialog[open] {
     height: 165px;
   }
   .product-info > strong {
-    font-size: 15px;
+    font-size: 1.055556rem;
   }
   .product-info b {
-    font-size: 18px;
+    font-size: 1.222222rem;
   }
 }
 @media (max-width: 1150px) {
@@ -2221,7 +2222,7 @@ dialog[open] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .erp-shell {
-    grid-template-columns: 170px minmax(0, 1fr);
+    grid-template-columns: 220px minmax(0, 1fr);
   }
   .erp-content {
     padding: 28px 22px 50px;
@@ -2231,10 +2232,10 @@ dialog[open] {
     flex-direction: column;
   }
   .page-title h1 {
-    font-size: 26px;
+    font-size: 1.666667rem;
   }
   .pos-shell {
-    grid-template-columns: minmax(0, 1fr) 350px;
+    grid-template-columns: minmax(0, 1fr) 380px;
   }
   .catalog-area {
     padding: 25px 20px 20px;
@@ -2250,11 +2251,11 @@ dialog[open] {
     align-items: flex-start;
   }
   .section-title h1 {
-    font-size: 25px;
+    font-size: 1.611111rem;
   }
   .pos-currency select {
     max-width: 124px;
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .pos-currency > svg {
     display: none;
@@ -2282,7 +2283,7 @@ dialog[open] {
     max-width: 180px;
   }
   :root[data-layout="classic"] .pos-shell {
-    grid-template-columns: minmax(0, 1fr) 350px;
+    grid-template-columns: minmax(0, 1fr) 380px;
   }
 }
 @media (max-width: 800px) {
@@ -2305,11 +2306,11 @@ dialog[open] {
     width: 55px;
   }
   .company strong {
-    font-size: 12px;
+    font-size: 0.888889rem;
     max-width: 150px;
   }
   .company small {
-    font-size: 9px;
+    font-size: 0.777778rem;
   }
   .top-actions {
     gap: 7px;
@@ -2321,21 +2322,21 @@ dialog[open] {
     min-height: 36px;
   }
   .top-actions > .btn.primary {
-    font-size: 11px;
+    font-size: 0.833333rem;
     padding: 8px;
   }
   .menu-button {
-    font-size: 11px;
+    font-size: 0.833333rem;
     min-height: 36px;
     padding: 7px 10px;
   }
   .language-select {
-    font-size: 10px;
+    font-size: 0.777778rem;
     padding: 5px;
     max-width: 50px;
   }
   .pos-shell {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 350px;
     min-height: calc(100dvh - 73px);
   }
   .section-title {
@@ -2347,7 +2348,7 @@ dialog[open] {
     align-self: flex-start;
   }
   .section-title h1 {
-    font-size: 25px;
+    font-size: 1.611111rem;
   }
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -2358,10 +2359,10 @@ dialog[open] {
     min-height: 110px;
   }
   .product-info > strong {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .product-info b {
-    font-size: 14px;
+    font-size: 1rem;
   }
   .cart-panel {
     max-height: calc(100dvh - 73px);
@@ -2380,7 +2381,7 @@ dialog[open] {
     padding: 12px 17px 28px;
   }
   .grand-total strong {
-    font-size: 26px;
+    font-size: 1.666667rem;
   }
   .erp-shell {
     grid-template-columns: 75px minmax(0, 1fr);
@@ -2395,7 +2396,7 @@ dialog[open] {
     position: relative;
   }
   .erp-nav > button > span {
-    font-size: 8px;
+    font-size: 0.777778rem;
     position: absolute;
     bottom: 0;
     line-height: 1;
@@ -2410,7 +2411,7 @@ dialog[open] {
     position: absolute;
     right: 1px;
     top: 1px;
-    font-size: 8px;
+    font-size: 0.777778rem;
     padding: 2px 4px;
   }
   .nav-bottom {
@@ -2418,7 +2419,7 @@ dialog[open] {
     text-align: center;
   }
   .nav-bottom > small {
-    font-size: 8px;
+    font-size: 0.777778rem;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
@@ -2436,7 +2437,7 @@ dialog[open] {
     padding: 16px;
   }
   .metric > strong {
-    font-size: 24px;
+    font-size: 1.555556rem;
   }
   .panel {
     padding: 20px;
@@ -2451,13 +2452,13 @@ dialog[open] {
     font-size: 35px;
   }
   .auth-visual p {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .auth-panel {
     padding: 20px;
   }
   .auth-top > .btn {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .share-card {
     flex-direction: column;
@@ -2472,7 +2473,7 @@ dialog[open] {
     justify-content: center;
   }
   :root[data-layout="classic"] .pos-shell {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 350px;
   }
   :root[data-layout="classic"] .erp-nav {
     width: auto;
@@ -2500,10 +2501,10 @@ dialog[open] {
   }
   .company strong {
     max-width: 115px;
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .company small {
-    font-size: 8px;
+    font-size: 0.777778rem;
   }
   .top-actions > .btn.primary span {
     display: none;
@@ -2518,14 +2519,14 @@ dialog[open] {
   }
   .menu-button {
     padding: 7px 10px;
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .top-actions {
     gap: 5px;
   }
   .top-actions .language-select {
     max-width: 40px;
-    font-size: 9px;
+    font-size: 0.777778rem;
     padding: 3px;
   }
   .pos-shell {
@@ -2543,16 +2544,16 @@ dialog[open] {
     margin-bottom: 20px;
   }
   .section-title h1 {
-    font-size: 23px;
+    font-size: 1.5rem;
     letter-spacing: -0.6px;
   }
   .section-title .eyebrow {
-    font-size: 8px;
+    font-size: 0.777778rem;
     margin-bottom: 8px;
     letter-spacing: 1.2px;
   }
   .section-title p {
-    font-size: 10px;
+    font-size: 0.777778rem;
     margin-top: 8px;
     max-width: 210px;
   }
@@ -2562,7 +2563,7 @@ dialog[open] {
   }
   .pos-currency select {
     max-width: 115px;
-    font-size: 10px;
+    font-size: 0.777778rem;
     padding: 8px 4px;
     min-height: 36px;
   }
@@ -2571,7 +2572,7 @@ dialog[open] {
     padding: 0 12px;
   }
   .search-wrap input {
-    font-size: 12px;
+    font-size: 0.888889rem;
     min-height: 45px;
     padding: 12px 0;
   }
@@ -2583,7 +2584,7 @@ dialog[open] {
     gap: 5px;
   }
   .categories button {
-    font-size: 11px;
+    font-size: 0.833333rem;
     padding: 7px 12px;
   }
   .product-grid {
@@ -2602,14 +2603,14 @@ dialog[open] {
     padding: 12px;
   }
   .product-info > strong {
-    font-size: 13px;
+    font-size: 0.944444rem;
   }
   .product-info b {
-    font-size: 16px;
+    font-size: 1.111111rem;
   }
   .catalog-footer {
     margin-top: 20px;
-    font-size: 9px;
+    font-size: 0.777778rem;
   }
   .catalog-footer > span:nth-child(2) {
     display: none;
@@ -2638,17 +2639,17 @@ dialog[open] {
     gap: 13px;
   }
   .cart-item-copy strong {
-    font-size: 14px;
+    font-size: 1rem;
   }
   .cart-item-copy small {
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .cart-line-icon {
     width: 46px;
     height: 48px;
   }
   .cart-line-end b {
-    font-size: 14px;
+    font-size: 1rem;
   }
   .cart-items > .empty {
     min-height: 180px;
@@ -2664,38 +2665,38 @@ dialog[open] {
     padding: 25px 10px;
   }
   .cart-items .empty p {
-    font-size: 11px;
+    font-size: 0.833333rem;
     max-width: 250px;
   }
   .cart-bottom {
     padding: 18px 20px 33px;
   }
   .sale-options > .toggle {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .total-row,
   .discount-row {
-    font-size: 13px;
+    font-size: 0.944444rem;
   }
   .grand-total strong {
-    font-size: 32px;
+    font-size: 2rem;
   }
   .grand-total {
     padding: 20px 0;
   }
   .checkout {
     min-height: 53px;
-    font-size: 13px;
+    font-size: 0.944444rem;
     justify-content: center;
   }
   .checkout kbd {
     display: none;
   }
   .cart-note {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .cart-heading > .btn {
-    font-size: 10px;
+    font-size: 0.777778rem;
     width: auto;
     margin-left: auto;
   }
@@ -2728,7 +2729,7 @@ dialog[open] {
     padding: 10px 12px;
   }
   .erp-nav > button > span {
-    font-size: 8px;
+    font-size: 0.777778rem;
     bottom: 5px;
   }
   .erp-nav > button svg {
@@ -2747,20 +2748,20 @@ dialog[open] {
     margin-bottom: 23px;
   }
   .page-title h1 {
-    font-size: 25px;
+    font-size: 1.611111rem;
   }
   .page-title p {
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .page-title .eyebrow {
-    font-size: 8px;
+    font-size: 0.777778rem;
   }
   .page-title .actions {
     width: 100%;
     gap: 8px;
   }
   .page-title .actions .btn {
-    font-size: 11px;
+    font-size: 0.833333rem;
     flex: 1;
   }
   .metrics {
@@ -2770,17 +2771,17 @@ dialog[open] {
     padding: 14px;
   }
   .metric > div {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .metric > strong {
-    font-size: 21px;
+    font-size: 1.388889rem;
     margin: 16px 0 10px;
   }
   .metric > div b {
-    font-size: 8px;
+    font-size: 0.777778rem;
   }
   .metric footer {
-    font-size: 8px;
+    font-size: 0.777778rem;
   }
   .metric footer span {
     display: block;
@@ -2790,14 +2791,14 @@ dialog[open] {
     margin-top: 3px;
   }
   .metric > p {
-    font-size: 8px;
+    font-size: 0.777778rem;
   }
   .panel {
     padding: 18px 14px;
     border-radius: 10px;
   }
   .panel > h2 {
-    font-size: 16px;
+    font-size: 1.111111rem;
   }
   .panel .table-wrap {
     width: 100%;
@@ -2811,17 +2812,17 @@ dialog[open] {
     min-width: 100px;
   }
   .filters .field > span {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .filters input {
-    font-size: 11px;
+    font-size: 0.833333rem;
     min-height: 38px;
     padding: 8px;
   }
   .filters .btn {
     min-height: 38px;
     padding: 8px;
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .filters .btn svg {
     width: 15px;
@@ -2832,7 +2833,7 @@ dialog[open] {
     grid-template-columns: 1fr;
   }
   .field > span {
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .image-upload {
     padding: 15px;
@@ -2855,17 +2856,17 @@ dialog[open] {
   }
   .price-grid input {
     padding: 10px 6px;
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .price-grid strong,
   .price-grid b {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .modal-head {
     padding: 20px;
   }
   .modal-head h2 {
-    font-size: 20px;
+    font-size: 1.333333rem;
   }
   .modal-body {
     padding: 20px;
@@ -2875,7 +2876,7 @@ dialog[open] {
     gap: 8px;
   }
   .modal-footer > .btn {
-    font-size: 12px;
+    font-size: 0.888889rem;
     flex: 1;
     min-height: 44px;
     padding: 10px;
@@ -2888,14 +2889,14 @@ dialog[open] {
     padding: 16px;
   }
   .menu-grid strong {
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .menu-grid > button > svg:last-child {
     right: 7px;
     bottom: 17px;
   }
   .menu-profile small {
-    font-size: 9px;
+    font-size: 0.777778rem;
     max-width: 190px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2916,13 +2917,13 @@ dialog[open] {
     width: 210px;
   }
   .access-code strong {
-    font-size: 20px;
+    font-size: 1.333333rem;
   }
   .share-copy > .actions .btn {
-    font-size: 11px;
+    font-size: 0.833333rem;
   }
   .invite-hero h3 {
-    font-size: 15px;
+    font-size: 1.055556rem;
   }
   .auth-shell {
     display: flex;
@@ -2939,12 +2940,12 @@ dialog[open] {
     font-size: 35px;
   }
   .auth-visual h1 {
-    font-size: 31px;
+    font-size: 1.944444rem;
     letter-spacing: -1.1px;
     margin: 18px 0;
   }
   .auth-visual small {
-    font-size: 9px;
+    font-size: 0.777778rem;
   }
   .auth-visual p,
   .auth-pills,
@@ -2974,16 +2975,16 @@ dialog[open] {
     justify-content: flex-end;
   }
   .auth-form h2 {
-    font-size: 26px;
+    font-size: 1.666667rem;
   }
   .auth-form > p {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .auth-form .segmented > .btn {
-    font-size: 10px;
+    font-size: 0.777778rem;
   }
   .auth-form .field > span {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .auth-form .field input {
     min-height: 48px;
@@ -3001,10 +3002,10 @@ dialog[open] {
     margin-top: 30px;
   }
   .collaborate-page h1 {
-    font-size: 27px;
+    font-size: 1.722222rem;
   }
   .collaborate-page > p {
-    font-size: 12px;
+    font-size: 0.888889rem;
   }
   .join-page > .panel {
     padding: 25px;
@@ -3153,7 +3154,7 @@ dialog[open] {
     background: transparent;
     border-color: transparent;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 0.833333rem;
     min-height: 39px;
     padding: 9px 12px;
     gap: 7px;
@@ -3169,7 +3170,7 @@ dialog[open] {
   }
   .mobile-pos-bar > strong {
     margin-left: auto;
-    font-size: 16px;
+    font-size: 1.111111rem;
     letter-spacing: -0.4px;
     padding-right: 2px;
     white-space: nowrap;
@@ -3207,4 +3208,57 @@ dialog[open] {
   .mobile-pos-bar {
     display: none !important;
   }
+}
+
+/* Keep screen text readable without changing the thermal receipt or print layout. */
+@media screen {
+  .btn { line-height: 1.4; }
+  .field > span, .menu-grid strong, .erp-nav > button { font-weight: 600; }
+  .field > span { color: var(--text); }
+  .erp-nav { overflow-y: auto; }
+  .erp-nav > button { white-space: normal; overflow-wrap: anywhere; }
+  .metric > div { flex-wrap: wrap; gap: 8px; }
+  .metric > strong, .menu-grid strong { overflow-wrap: anywhere; }
+  .sale-options, .catalog-footer, .menu-profile { flex-wrap: wrap; }
+  .sale-options { gap: 10px; }
+  .icon-button { width: 40px; height: 40px; min-height: 40px; flex-shrink: 0; }
+  .icon-button span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .btn.square { width: 40px; min-height: 40px; }
+  .cart-line-end button { width: 32px; height: 32px; min-height: 32px; }
+  .cart-heading > .btn { width: 40px; min-height: 40px; }
+  .client-select select, .pos-currency select, .discount-row input { font-size: 0.888889rem; }
+  .discount-row input { min-height: 40px; width: 100px; }
+  .language-select { min-height: 40px; }
+}
+@media screen and (min-width: 621px) and (max-height: 900px) {
+  .cart-panel { max-height: none; position: static; }
+}
+@media screen and (max-width: 800px) {
+  .erp-shell { grid-template-columns: 110px minmax(0, 1fr); }
+  .erp-nav > button { flex-direction: column; gap: 6px; padding: 10px 6px; }
+  .erp-nav > button > span { position: static; font-size: 0.777778rem; line-height: 1.3; }
+  .erp-nav > button svg { margin: 0; }
+}
+@media screen and (max-width: 620px) {
+  .top-actions { flex-shrink: 0; }
+  .brand .wordmark { flex-shrink: 0; }
+  .company strong { max-width: clamp(60px, 20vw, 115px); }
+  .company small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .section-title { flex-wrap: wrap; }
+  .pos-currency select { max-width: 160px; }
+  .erp-nav { height: auto; min-height: 86px; }
+  .erp-nav > button { min-width: 110px; min-height: 68px; padding: 10px; }
+  .cart-heading > .btn { width: auto; }
+  .mobile-pos-bar .btn { min-height: 44px; padding: 9px; }
+  .mobile-pos-bar { flex-wrap: wrap; }
+  .filters input, .price-grid input { font-size: 0.888889rem; }
+  .menu-grid strong { font-size: 0.888889rem; }
+}
+@media screen and (max-width: 380px) {
+  .topbar { padding-inline: 10px; gap: 6px; }
+  .brand { gap: 6px; }
+  .brand .wordmark { font-size: 28px; }
+  .menu-button { padding-inline: 6px; }
+  .top-actions .language-select { max-width: 32px; }
+  .metrics { grid-template-columns: 1fr; }
 }
