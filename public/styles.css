@@ -3265,3 +3265,28 @@ dialog[open] {
   .menu-grid > button { min-height: 68px; flex-direction: row; align-items: center; gap: 12px; padding-right: 28px; }
   .menu-grid strong { overflow-wrap: normal; }
 }
+
+/* The active register can be closed from either mobile POS view. */
+.pos-register-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.pos-register-strip > div { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pos-register-strip strong { display: block; overflow-wrap: anywhere; }
+.pos-register-strip small { display: block; font-size: 0.777778rem; }
+.pos-register-strip svg { color: var(--accent); }
+.cart-close-register { display: none; }
+@media screen and (max-width: 620px) {
+  .pos-register-strip { padding: 12px; gap: 10px; }
+  .pos-register-strip .btn { white-space: normal; }
+  .cart-close-register { display: flex; width: 100%; margin-top: 14px; }
+  .modal-footer .btn { min-width: 0; white-space: normal; text-align: center; }
+}

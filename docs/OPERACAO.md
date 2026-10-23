@@ -16,7 +16,9 @@ Cada caixa opera em uma moeda. Para receber em outra, abra ou selecione um caixa
 
 O saldo esperado contém o saldo inicial, pagamentos em dinheiro, recebimentos de contas em dinheiro e suprimentos, menos sangrias e vendas canceladas. Pix, QR, cartão e transferência ficam registrados nas vendas e não são somados ao dinheiro físico esperado.
 
-No fechamento, informe o dinheiro contado. A diferença é gravada junto com o horário de abertura e fechamento. O relatório inclui essas informações em tabela.
+Para fechar direto no PDV, clique em **Fechar caixa** na faixa que mostra o caixa ativo. No celular, o botão também aparece abaixo do total na aba **Venda atual**. Informe o dinheiro contado, confira a diferença e clique em **Confirmar fechamento**. Cancelar mantém o caixa aberto. O fechamento afeta somente o caixa indicado e mantém os itens ainda no carrinho.
+
+A diferença é gravada junto com o horário de abertura e fechamento. O relatório inclui essas informações em tabela. O caminho **Menu → Gestão da empresa → Caixa** continua disponível.
 
 O valor recebido menor que o total exige um cliente identificado e a confirmação para registrar o restante em conta. Receba depois em **Clientes → Receber**. O comprovante preserva o que foi recebido e o que ficou pendente no momento da venda.
 

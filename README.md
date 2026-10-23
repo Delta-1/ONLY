@@ -60,6 +60,8 @@ npm run test:browser
 
 **Balcão:** entrar → PDV → abrir caixa ou escolher Agora não → adicionar itens → escolher cliente/desconto → receber → comprovante.
 
+**Fechamento:** no PDV, Fechar caixa → informar dinheiro contado → conferir diferença → Confirmar fechamento. No celular, o botão também aparece na aba Venda atual.
+
 **Gestão:** Menu → Gestão da empresa → produtos, clientes, pedidos, caixa, relatórios, equipe ou configurações.
 
 **Pedido no celular:** Menu → Totem móvel → Criar link → compartilhar QR/link/código → cliente envia pedido → ERP / Pedidos → Levar ao PDV → receber.

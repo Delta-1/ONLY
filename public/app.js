@@ -247,7 +247,7 @@ function pos() {
     reg = currentRegister(),
     sum = subtotal();
   const show = publicMode || settings().showCatalog !== false;
-  return `<div class="pos-shell ${show ? "" : "no-catalog"}"><section class="catalog-area"><div class="section-title"><div><span class="eyebrow">${publicMode ? esc(settings().name) : "ONLY POINT OF SALE"}</span><h1>${t(publicMode === "store" ? "catalog" : publicMode ? "mobile" : "pos")}<span class="live-dot"></span></h1><p>${publicMode ? esc(settings().storeDescription || t("storeHint")) : t("noConversion")}</p></div>${!publicMode ? `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}">${currencyOptions(posCurrency)}</select></div>` : ""}</div><div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div></div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
+  return `<div class="pos-shell ${show ? "" : "no-catalog"}"><section class="catalog-area"><div class="section-title"><div><span class="eyebrow">${publicMode ? esc(settings().name) : "ONLY POINT OF SALE"}</span><h1>${t(publicMode === "store" ? "catalog" : publicMode ? "mobile" : "pos")}<span class="live-dot"></span></h1><p>${publicMode ? esc(settings().storeDescription || t("storeHint")) : t("noConversion")}</p></div>${!publicMode ? `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}">${currencyOptions(posCurrency)}</select></div>` : ""}</div>${!publicMode && reg ? `<div class="pos-register-strip"><div>${svg("wallet")}<span><strong>${esc(reg.name)}</strong><small>${t("registerOpen")} · ${reg.currency}</small></span></div>${btn("close-current-register", t("closeRegister"), "close")}</div>` : ""}<div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div>${!publicMode && reg ? btn("close-current-register", t("closeRegister"), "close", "cart-close-register") : ""}</div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
 }
 const posState = { clientId: "", discount: "0", notes: "" };
 Object.assign(pos, posState);
@@ -695,6 +695,20 @@ function registerModal(question = false) {
   if (question)
     $('.modal-footer button[data-action="close-dialog"]').textContent =
       t("later");
+}
+async function closeRegisterModal(id) {
+  // Refresh the selected register before showing its cash balance.
+  await load(true);
+  const r = data.registers.find((r) => r.id === id);
+  if (!r || r.closed) { render(); throw Error("registerClosed"); }
+  if (!canUseRegister(r)) throw Error("forbidden");
+  formModal(
+    t("closeRegister"),
+    "close-register",
+    `<input type="hidden" name="id" value="${r.id}"><h3>${esc(r.name)} · ${r.currency}</h3><div class="payment-total"><small>${t("expected")}</small><strong>${money(r.expected, r.currency)}</strong></div>${field(t("counted"), "counted", "", "number", 'required min="0" step="0.01"')}<div class="total-row" data-closing-difference hidden><span>${t("difference")}</span><strong aria-live="polite"></strong></div>`,
+    `data-expected="${r.expected}" data-currency="${r.currency}"`,
+  );
+  $('.modal-footer button[type="submit"]').textContent = t("confirmCloseRegister");
 }
 function productFields(p = {}) {
   return `<div class="form-grid">${field(t("name"), "name", p.name, "text", 'required maxlength="200"')}${field(t("code"), "code", p.code, "text", 'maxlength="80"')}${field(t("category"), "category", p.category)}${field(t("unit"), "unit", p.unit || "un")}${field(t("description"), "description", p.description, "text", 'maxlength="1000"')}${field(t("stock"), "stock", p.stock ?? 0, "number", 'min="0" step="0.001"')}${field(t("minStock"), "minStock", p.minStock ?? 0, "number", 'min="0" step="0.001"')}${check("trackStock", t("trackStock"), p.trackStock !== false)}${check("published", t("published"), p.published !== false)}${check("active", t("active"), p.active !== false)}</div><h3>${t("price")}</h3><p class="hint">${t("pricesHint")}</p><div class="price-grid"><b>${t("currency")}</b><b>${t("retail")}</b><b>${t("wholesale")}</b>${currencies.map((c) => `<strong>${c}</strong><input type="number" name="price_${c}" aria-label="${t("price")} ${c}" min="0" step="0.01" value="${p.prices?.[c] != null ? p.prices[c] / 100 : ""}"><input type="number" name="wholesale_${c}" aria-label="${t("wholesale")} ${c}" min="0" step="0.01" value="${p.wholesale?.[c] != null ? p.wholesale[c] / 100 : ""}">`).join("")}</div><div class="form-grid">${field(t("cost"), "cost", p.cost ? p.cost / 100 : 0, "number", 'min="0" step="0.01"')}${select(t("currency"), "costCurrency", currencyOptions(p.costCurrency || settings().currency))}</div>${imageField(p.image, "productImage")}`;
@@ -1202,14 +1216,8 @@ const actions = {
     posCurrency = currentRegister().currency;
     render();
   },
-  "close-register": (el) => {
-    const r = data.registers.find((r) => r.id === el.dataset.id);
-    formModal(
-      t("closeRegister"),
-      "close-register",
-      `<input type="hidden" name="id" value="${r.id}"><h3>${esc(r.name)} · ${r.currency}</h3><div class="payment-total"><small>${t("expected")}</small><strong>${money(r.expected, r.currency)}</strong></div>${field(t("counted"), "counted", "", "number", 'required min="0" step="0.01"')}`,
-    );
-  },
+  "close-current-register": () => closeRegisterModal(selectedRegister),
+  "close-register": (el) => closeRegisterModal(el.dataset.id),
   movement: () => {
     const registers = data.registers.filter(canUseRegister);
     if (!registers.length) return registerModal();
@@ -1358,6 +1366,12 @@ document.addEventListener("input", (e) => {
       $("[data-mobile-total]").textContent = money(Math.max(0, total));
   }
   if (e.target.name === "received") updateTender();
+  if (e.target.name === "counted" && e.target.form?.dataset.form === "close-register") {
+    const form = e.target.form, row = $("[data-closing-difference]", form);
+    const value = Number(e.target.value);
+    row.hidden = e.target.value === "" || !Number.isFinite(value) || value < 0;
+    if (!row.hidden) $("strong", row).textContent = money(cents(value) - Number(form.dataset.expected), form.dataset.currency);
+  }
 });
 document.addEventListener("change", async (e) => {
   try {
@@ -1504,6 +1518,7 @@ document.addEventListener("submit", async (e) => {
       await api("/api/registers/close", fields);
       dialog.close();
       await refresh();
+      toast(t("registerClosed"));
     }
     if (kind === "movement") {
       await api("/api/movements", fields);

@@ -112,6 +112,7 @@ const entries = {
   registerName: ["Nome do caixa", "Nombre de caja", "Register name"],
   opening: ["Saldo inicial", "Saldo inicial", "Opening balance"],
   closeRegister: ["Fechar caixa", "Cerrar caja", "Close register"],
+  confirmCloseRegister: ["Confirmar fechamento", "Confirmar cierre", "Confirm closing"],
   counted: ["Dinheiro contado", "Efectivo contado", "Counted cash"],
   expected: ["Saldo esperado", "Saldo esperado", "Expected balance"],
   difference: ["Diferença", "Diferencia", "Difference"],

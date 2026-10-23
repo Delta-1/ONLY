@@ -210,6 +210,50 @@ try {
     () => document.documentElement.scrollWidth > innerWidth,
   );
   assert.equal(overflow, false, "mobile horizontal overflow");
+  // Close only the selected register directly from either mobile POS view.
+  await p.locator("[data-add]").first().click();
+  const registerBeforeClose = await p.evaluate(async () => {
+    const w = await (await fetch("/api/workspace")).json();
+    return w.registers.find((r) => !r.closed);
+  });
+  await p.locator('.pos-register-strip [data-action="close-current-register"]').click();
+  await p.locator('[data-form="close-register"]').waitFor();
+  assert.equal(await p.locator('[data-form="close-register"] [name="id"]').inputValue(), registerBeforeClose.id);
+  await p.locator('[name="counted"]').fill(String(registerBeforeClose.expected / 100 + 1));
+  assert.match(await p.locator('[data-closing-difference] strong').innerText(), /1,00/);
+  await p.locator('.modal-footer [data-action="close-dialog"]').click();
+  assert.equal(await p.locator('.cart-line').count(), 1, "cancel keeps the sale in progress");
+  const stillOpen = await p.evaluate(async (id) => (await (await fetch('/api/workspace')).json()).registers.find(r => r.id === id), registerBeforeClose.id);
+  assert.equal(stillOpen.closed, null, "cancel leaves the register open");
+  const otherRegister = await p.evaluate(async () => (await fetch('/api/registers/open', {method:'POST', headers:{'Content-Type':'application/json','X-Only-Request':'1'}, body:JSON.stringify({name:'Outro caixa',currency:'BRL',opening:50})})).json());
+  await click('mobile-cart');
+  await p.locator('.cart-close-register').click();
+  await p.locator('[data-form="close-register"]').waitFor();
+  await p.locator('[name="counted"]').fill(String(registerBeforeClose.expected / 100 - 1));
+  assert.match(await p.locator('[data-closing-difference] strong').innerText(), /-.*1,00/);
+  await p.setViewportSize({width:320,height:740});
+  assert.equal(await p.locator('dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false,'closing dialog fits narrow phones');
+  await p.setViewportSize({width:390,height:844});
+  await p.screenshot({path:join(artifacts,'fechar-caixa-mobile.png'),fullPage:true,animations:'disabled'});
+  await p.setViewportSize({width:1366,height:768});
+  await p.screenshot({path:join(artifacts,'fechar-caixa-desktop.png'),fullPage:true,animations:'disabled'});
+  await p.getByRole('button',{name:'Confirmar fechamento',exact:true}).click();
+  await p.locator('dialog').waitFor({state:'hidden'});
+  await p.locator('.pos-shell').waitFor();
+  assert.equal(await p.locator('.cart-line').count(),1,"closing keeps the cart");
+  const afterClose = await p.evaluate(async()=> (await (await fetch('/api/workspace')).json()));
+  const closedRegister=afterClose.registers.find(r=>r.id===registerBeforeClose.id);
+  assert.ok(closedRegister.closed);
+  assert.equal(closedRegister.counted,registerBeforeClose.expected-100);
+  assert.equal(afterClose.registers.find(r=>r.id===otherRegister.id).closed,null,"other registers remain open");
+  await click('menu'); await click('erp'); await p.locator('[data-view="cash"]').click();
+  assert.match(await p.locator('tbody').first().innerText(), /Caixa fechado/);
+  // The ERP retains access to the same closing dialog.
+  await p.locator(`[data-action="close-register"][data-id="${otherRegister.id}"]`).click();
+  await p.locator('[data-form="close-register"]').waitFor();
+  assert.equal(await p.locator('[name="id"]').inputValue(),otherRegister.id);
+  await p.locator('.modal-footer [data-action="close-dialog"]').click();
+  console.log('Register closing passed: POS catalog/cart, cancel, discrepancy, confirmation, preserved cart, independent registers, ERP.');
   console.log(
     "UI flows passed:",
     JSON.stringify({
