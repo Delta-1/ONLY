@@ -32,7 +32,15 @@ Links móveis duram 30 dias; links de cadastro colaborativo duram sete dias. O a
 
 Os pedidos são atualizados a cada 12 segundos enquanto a tela está ativa. Também há **Atualizar** no ERP. Operadores fazem login para receber pagamentos; clientes e auxiliares usam os links sem login.
 
-## Publicação
+## Publicação padrão: Pages e Supabase
+
+O endereço `https://delta-1.github.io/ONLY/` usa a conexão Supabase definida em `public/site-config.json`. Cadastros, vendas, caixas e pedidos são salvos no esquema privado `only_app` do projeto WORKSPACE. Os links de clientes usam `#/store/...`, `#/mobile/...` e `#/collaborate/...`; a entrada com código usa `#/join`.
+
+A chave publicável identifica a API, mas não libera as tabelas privadas. A função `only` valida a sessão de cada usuário e a empresa vinculada a ela. Auxiliares e clientes recebem apenas os dados permitidos pelo link, com validade e revogação.
+
+Não há processo Node adicional para manter a publicação padrão. Para reinstalar em outro projeto Supabase, aplique a estrutura de banco e publique a função, depois troque somente a URL e a chave publicável da configuração. Preserve o endereço público autorizado na configuração do CORS e dos QR Codes da função.
+
+## Publicação alternativa: Node e SQLite
 
 O processo Node serve a interface e a API na mesma origem. Utilize Node 24+, um volume persistente montado em `DATA_DIR` e um proxy HTTPS. Com Docker, o arquivo `compose.yaml` já define o volume.
 
@@ -45,11 +53,15 @@ APP_ORIGIN=https://pdv.suaempresa.com
 COOKIE_SECURE=true
 ```
 
-Não coloque o banco ou uma cópia dele em `public/`, em commits ou em arquivos distribuídos aos clientes. Dados de cada empresa são separados pelo identificador de empresa em todas as consultas privadas. Sessões usam cookies HttpOnly e senhas usam scrypt com salt individual.
+Não coloque o banco ou uma cópia dele em `public/`, em commits ou em arquivos distribuídos aos clientes. Dados de cada empresa são separados pelo identificador de empresa em todas as consultas privadas. No servidor Node, as sessões usam cookies HttpOnly e senhas usam scrypt com salt individual. Na publicação Supabase, as sessões próprias são enviadas em cabeçalho autenticado e as senhas usam PBKDF2-SHA256 com salt individual.
 
 O sistema permite criar empresas. Controle o acesso à implantação conforme seu modelo comercial; cobrança de assinatura, emissão fiscal, recuperação de senha por e-mail e gateway de pagamento não estão implementados.
 
-## Backup e restauração
+## Backup do banco online
+
+O ambiente online usa PostgreSQL no Supabase. Inclua o esquema `only_app` nas rotinas de backup/exportação do projeto e teste a restauração em um ambiente separado. O volume SQLite local não é uma cópia do banco online.
+
+## Backup e restauração do SQLite (alternativa local)
 
 Faça backup regular do volume. Para copiar os arquivos SQLite de forma simples e consistente, pare o processo antes de copiar **todo o diretório de dados**; isso inclui arquivos auxiliares que possam existir. Reinicie após a cópia. Se usar ferramenta de backup SQLite online, verifique que ela captura uma cópia consistente do WAL.
 

@@ -414,6 +414,7 @@ const entries = {
   ],
 };
 const errors = {
+ concurrentUpdate: ["Outro caixa atualizou os dados. Tente novamente.", "Otra caja actualizó los datos. Inténtalo de nuevo.", "Another register updated the data. Please retry."],
   serverNotConfigured: ["O serviço de dados ainda não está conectado.", "El servicio de datos aún no está conectado.", "The data service is not connected yet."],
   invalidAmount: [
     "Informe um valor válido.",

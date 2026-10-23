@@ -4,3 +4,5 @@ data/
 coverage/
 test-results/
 *.sqlite*
+
+supabase/.temp/

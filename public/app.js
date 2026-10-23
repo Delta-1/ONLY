@@ -1,3 +1,4 @@
+import { cloud, request, routeUrl, qrUrl } from "./cloud.js";
 import { svg } from "./icons.js";
 import {
   currencies,
@@ -45,7 +46,7 @@ try {
     sessionStorage.getItem("only.pendingSale") || "null",
   );
 } catch {}
-const path = location.pathname.split("/").filter(Boolean);
+const path = (cloud && location.hash.startsWith("#/") ? location.hash.slice(1) : location.pathname).split("/").filter(Boolean);
 if (["store", "mobile", "collaborate"].includes(path[0]))
   [publicMode, publicKey] = path;
 const money = (n, c = posCurrency) =>
@@ -98,20 +99,9 @@ const toast = (message, error = false) => {
 };
 const api = async (path, body) => {
   if (staticSite) throw Error("serverNotConfigured");
-  let response;
-  try {
-    response = await fetch(path, {
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "X-Only-Request": "1" },
-      ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
-    });
-  } catch {
-    throw Error("offline");
-  }
-  const json = await response.json().catch(() => ({ error: "serverError" }));
-  if (!response.ok) throw Error(json.error || "serverError");
-  return json;
+  return request(path,body);
 };
+
 const notifyError = (e) => {
   const key = e.message || e;
   const message = key === "offline" ? t("offline") : errorText(key);
@@ -627,8 +617,8 @@ function settingsPage() {
   );
 }
 function linkBlock(relative, label, code = "") {
-  const url = location.origin + relative;
-  return `<div class="share-card"><div class="qr-box"><img src="/api/qr?path=${encodeURIComponent(relative)}" alt="QR Code" width="220" height="220"></div><div class="share-copy"><small>${esc(label)}</small><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a>${code ? `<div class="access-code"><small>${t("joinCode")}</small><strong>${esc(code)}</strong><a href="/join" target="_blank" rel="noopener">${location.origin}/join</a></div>` : ""}<div class="actions">${btn("copy", t("copy"), "transfer", "primary", `data-value="${esc(url)}"`)}${btn("share", t("share"), "upload", "", `data-value="${esc(url)}"`)}</div></div></div>`;
+  const url = cloud ? routeUrl(relative) : location.origin + relative;
+  return `<div class="share-card"><div class="qr-box"><img src="${esc(qrUrl(relative))}" alt="QR Code" width="220" height="220"></div><div class="share-copy"><small>${esc(label)}</small><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a>${code ? `<div class="access-code"><small>${t("joinCode")}</small><strong>${esc(code)}</strong><a href="${esc(routeUrl("/join"))}" target="_blank" rel="noopener">${esc(cloud?routeUrl("/join"):location.origin+"/join")}</a></div>` : ""}<div class="actions">${btn("copy", t("copy"), "transfer", "primary", `data-value="${esc(url)}"`)}${btn("share", t("share"), "upload", "", `data-value="${esc(url)}"`)}</div></div></div>`;
 }
 function storePage() {
   const b = settings();
@@ -905,7 +895,7 @@ function renderCollaborate() {
     `<div class="collaborate-page"><span class="eyebrow">${esc(settings().name)}</span><h1>${t("draftTitle")}</h1><p>${t("collaborationHint")}</p><form class="panel" data-form="draft">${productFields()}<p data-inline-error class="form-error" hidden></p><button type="submit" class="btn primary wide">${svg("check")}${t("save")}</button></form></div>`;
 }
 function joinPage() {
-  app.innerHTML = `<div class="join-page"><a class="wordmark" href="/">only<i>®</i></a>${languagePicker()}<div class="panel"><div class="join-icon">${svg("smartphone")}</div><h1>${t("join")}</h1><p>${t("joinHint")}</p><form data-form="join">${field(t("code"), "code", "", "text", 'required maxlength="20" autocomplete="off" autocapitalize="characters"')}<p data-inline-error class="form-error" hidden></p><button type="submit" class="btn primary wide">${t("start")}${svg("chevron")}</button></form></div></div>`;
+  app.innerHTML = `<div class="join-page"><a class="wordmark" href="${esc(cloud?routeUrl("/"):"/")}">only<i>®</i></a>${languagePicker()}<div class="panel"><div class="join-icon">${svg("smartphone")}</div><h1>${t("join")}</h1><p>${t("joinHint")}</p><form data-form="join">${field(t("code"), "code", "", "text", 'required maxlength="20" autocomplete="off" autocapitalize="characters"')}<p data-inline-error class="form-error" hidden></p><button type="submit" class="btn primary wide">${t("start")}${svg("chevron")}</button></form></div></div>`;
 }
 async function sendSale(payload) {
   pendingSale = { business: data.user.business, payload };
@@ -1019,7 +1009,7 @@ const actions = {
     render();
   },
   join: () => {
-    location.href = "/join";
+    location.href = routeUrl("/join");
   },
   register: () => registerModal(),
   "new-product": () => productForm(),
@@ -1447,7 +1437,7 @@ document.addEventListener("submit", async (e) => {
     }
     if (kind === "join") {
       const result = await api("/api/join", fields);
-      location.href = result.path;
+      location.href = routeUrl(result.path);
     }
     if (kind === "open-register") {
       const r = fields.existing
@@ -1687,6 +1677,7 @@ setInterval(async () => {
     }
   }
 }, 12000);
-if (!staticSite && "serviceWorker" in navigator)
+if (!staticSite && !cloud && "serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {});
+if(cloud) window.addEventListener("hashchange",()=>location.reload());
 boot();

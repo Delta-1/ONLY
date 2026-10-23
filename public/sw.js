@@ -1,8 +1,9 @@
 // Navigation stays online: no caching of authenticated API responses or business data.
-const CACHE = "only-shell-v1";
+const CACHE = "only-shell-v2";
 const ASSETS = [
   "/styles.css",
   "/app.js",
+  "/cloud.js",
   "/money.js",
   "/icons.js",
   "/i18n.js",

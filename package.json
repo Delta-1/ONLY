@@ -1,9 +1,9 @@
 {
   "name": "only-pdv-erp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
-  "description": "ONLY \u2014 PDV, ERP, cat\u00e1logo e pedidos m\u00f3veis para empresas",
+  "description": "ONLY — PDV, ERP, catálogo e pedidos móveis para empresas",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -11,7 +11,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check server.js && node --check public/app.js && node --check lib/store.js",
+    "check": "node --check server.js && node --check public/app.js && node --check lib/store.js && node --check public/cloud.js && node --check supabase/functions/only/handler.js && node --check supabase/functions/only/domain.js",
     "test:browser": "node tests/browser-smoke.mjs",
     "pages:build": "node scripts/build-pages.mjs",
     "test:pages": "node tests/pages-smoke.mjs"

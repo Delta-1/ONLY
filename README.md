@@ -6,9 +6,9 @@ Sistema para operação de balcão, gestão da empresa, loja virtual e pedidos p
 
 Acesse **[ONLY no GitHub Pages](https://delta-1.github.io/ONLY/)**. O endereço abre a tela do aplicativo, usando o `index.html` da raiz, em vez de publicar o README como página inicial.
 
-A tela de acesso no Pages está publicada; a conexão com o serviço de dados ainda precisa ser ativada. Enquanto isso, o aplicativo informa essa condição e não simula cadastro ou vendas. Quando o servidor estiver disponível, preencha `systemUrl` em `public/site-config.json` com seu endereço HTTPS para que o mesmo link abra automaticamente a aplicação completa. O servidor não depende de um provedor específico.
+O Pages está conectado ao Supabase: escolha **Criar minha empresa**, informe seus dados e comece a cadastrar produtos. A função `only` processa autenticação, vendas, caixa e pedidos; o banco fica no esquema privado `only_app`, separado dos demais aplicativos do projeto WORKSPACE. Não há senha padrão. Cada empresa tem seus próprios usuários e dados.
 
-Após mudar a estrutura da tela inicial, execute `npm run pages:build` para atualizar a entrada do Pages. O servidor Node continua usando `public/index.html`.
+Após mudar a estrutura da tela inicial, execute `npm run pages:build` para atualizar a entrada do Pages. Os links de loja, totem e cadastro colaborativo usam rotas `#/...`, compatíveis com o Pages. A configuração pública está em `public/site-config.json`; ela contém apenas a URL e a chave publicável. Chaves de serviço ficam exclusivamente no ambiente da função.
 
 ## Prévias
 
@@ -18,7 +18,7 @@ Telas de validação com produtos fictícios, sem dados de clientes.
 
 [ERP](docs/screenshots/erp-desktop.png) · [Celular](docs/screenshots/pdv-mobile.png) · [Loja virtual móvel](docs/screenshots/loja-mobile.png) · [Tema claro](docs/screenshots/config-claro.png) · [Comprovante](docs/screenshots/comprovante.png)
 
-## Executar
+## Executar localmente (opcional)
 
 Requer **Node.js 24 ou superior**.
 
@@ -68,9 +68,22 @@ npm run test:browser
 
 **Produtos em conjunto:** ERP → Produtos → Cadastrar em conjunto → Criar link → auxiliar cadastra no celular → administrador aprova no ERP. O link não dá acesso a vendas, clientes ou relatórios.
 
-## Hospedar com dados compartilhados
+## Produção: GitHub Pages + Supabase
 
-O repositório contém **frontend + servidor + SQLite**. Loja online, QR e vários aparelhos precisam de uma instância pública do servidor com armazenamento persistente. **GitHub Pages sozinho não executa este backend.** O Pages publica a interface; a aplicação completa com banco precisa do servidor online.
+A publicação usa o Pages para a interface e a função `only` no Supabase para os dados compartilhados. Não é necessário hospedar o processo Node para usar o endereço público.
+
+- `supabase/migrations/20261023124825_only_cloud_backend.sql`: estrutura exclusiva do ONLY, permissões e gateway interno.
+- `supabase/functions/only/`: função ativa e regras de negócio. O gateway SQL é acessível somente pela função com a credencial de serviço.
+- `public/cloud.js`: transporte autenticado, restauração da sessão e geração dos links para o Pages.
+- `public/site-config.json`: URL e chave publicável, sem credenciais privilegiadas.
+
+As sessões são aleatórias, expiram após sete dias e têm apenas o hash armazenado no banco. As senhas usam PBKDF2-SHA256 com salt individual e 600.000 iterações. Operações concorrentes usam controle de versão no Postgres: a alteração inteira é gravada ou recalculada sobre os dados atuais, protegendo estoque e caixa. Reenvios de vendas preservam o identificador para evitar duplicação.
+
+O parâmetro `verify_jwt=false` da função permite cadastro, login e catálogo antes de entrar. As rotas privadas validam a sessão própria do ONLY em cada chamada. As tabelas privadas não têm acesso anônimo, e `only_gateway` não concede execução aos papéis `anon` e `authenticated`.
+
+## Alternativa: servidor Node com SQLite
+
+O servidor Node permanece disponível como alternativa para uma instalação própria. Ele usa um banco SQLite separado do ambiente Supabase. Para essa alternativa, os aparelhos devem acessar a mesma instância Node com armazenamento persistente.
 
 Para testar na mesma rede, abra `http://IP-DO-COMPUTADOR:3000` no computador antes de gerar o QR. Links gerados a partir de `localhost` só funcionam no próprio aparelho. Para produção e instalação PWA, use domínio com HTTPS.
 

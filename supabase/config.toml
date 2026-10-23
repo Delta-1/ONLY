@@ -1,0 +1,3 @@
+[functions.only]
+# The handler validates scoped, expiring ONLY sessions itself; public catalog and signup are available before login.
+verify_jwt = false

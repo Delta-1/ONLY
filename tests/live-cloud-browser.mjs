@@ -1,0 +1,33 @@
+import {createServer} from 'node:http';
+import {readFile,mkdir} from 'node:fs/promises';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {resolve,extname,join} from 'node:path';
+import {tmpdir} from 'node:os';
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+if(process.env.ONLY_LIVE_TEST!=='1')throw Error('Set ONLY_LIVE_TEST=1 to validate with temporary cloud data.');
+const root=resolve('.'),server=createServer(async(req,res)=>{const p=new URL(req.url,'http://localhost').pathname;if(!p.startsWith('/ONLY/')){res.writeHead(404);return res.end();}const local=p.slice(6)||'index.html',types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};try{const data=await readFile(resolve(root,local));res.setHeader('Content-Type',types[extname(local)]||'text/plain');res.end(data);}catch{res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/ONLY/`;
+const proxy=process.env.HTTPS_PROXY?{server:process.env.HTTPS_PROXY,bypass:'127.0.0.1,localhost'}:undefined;
+const browser=await chromium.launch({...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),...(proxy?{proxy}:{}),args:['--no-sandbox','--no-zygote','--disable-dev-shm-usage','--disable-gpu','--single-process'],headless:true});
+let businessId;
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:1000},ignoreHTTPSErrors:true}),p=await context.newPage(),errors=[],apiErrors=[];
+ p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.url().includes('/functions/v1/only/api/')&&r.status()>=400&&!r.url().endsWith('/workspace'))apiErrors.push({url:r.url(),status:r.status()});});
+ const click=async a=>p.locator(`[data-action="${a}"]`).first().click(),submit=async type=>p.locator(`[data-form="${type}"]`).evaluate(f=>f.requestSubmit());
+ await p.goto(base);await p.locator('[data-form=login]').waitFor();assert.equal(await p.locator('[data-form=login] [type=submit]').isDisabled(),false);
+ await click('auth-signup');const stamp=Date.now().toString(36),email=`only-ui-${stamp}@example.test`,password='only-live-ui-123';
+ await p.locator('[name=name]').fill('Operador teste');await p.locator('[name=businessName]').fill(`ONLY QA UI ${stamp}`);await p.locator('[name=email]').fill(email);await p.locator('[name=password]').fill(password);await submit('signup');
+ await p.getByText('Vamos abrir o caixa?',{exact:true}).waitFor({timeout:60000});await click('close-dialog');
+ businessId=await p.evaluate(async()=>{const {request}=await import('./public/cloud.js');return (await request('/api/workspace')).business.id;});
+ const privatePath=process.env.ONLY_LIVE_EVIDENCE_PATH||join(tmpdir(),'only-live-private.json');let saved={ids:[]};try{saved=JSON.parse(readFileSync(privatePath,'utf8'));}catch{}saved.ids.push(businessId);writeFileSync(privatePath,JSON.stringify(saved),{mode:0o600});
+ await click('menu');await click('erp');await p.locator('[data-view=products]').click();await click('new-product');await p.locator('dialog [name=name]').fill('Produto de validação');await p.locator('dialog [name=code]').fill('VALID-001');await p.locator('dialog [name=stock]').fill('5');await p.locator('[name=price_BRL]').fill('12.5');await submit('product');await p.locator('dialog').waitFor({state:'hidden',timeout:60000});
+ await click('pos');await p.locator('[data-add]').first().click();await click('register');await p.locator('dialog [name=name]').fill('Caixa de teste');await p.locator('dialog [name=opening]').fill('50');await submit('open-register');await p.locator('dialog').waitFor({state:'hidden',timeout:60000});await click('checkout');await p.locator('#paymentForm [name=received]').fill('20');assert.match(await p.locator('#tenderSummary').innerText(),/7,50/);await submit('sale');await p.locator('#printArea').waitFor({timeout:60000});assert.match(await p.locator('#printArea').innerText(),/7,50/);await click('close-dialog');
+ await click('menu');await click('erp');await p.locator('[data-view=catalog]').click();await p.locator('[name=storeEnabled]').check();await submit('store');await p.locator('.share-copy>a').waitFor({timeout:60000});const url=await p.locator('.share-copy>a').getAttribute('href');assert.ok(url.includes('#/store/'));
+ const phone=await context.newPage();await phone.setViewportSize({width:390,height:844});phone.on('pageerror',e=>errors.push(e.message));await phone.goto(url);await phone.locator('[data-add]').first().click();await phone.locator('[data-action=mobile-cart]').click();await phone.locator('[data-action=order-checkout]').click();await phone.locator('[name=customer]').fill('Cliente de validação');await phone.locator('[name=phone]').fill('000000000');await phone.locator('[data-form=order]').evaluate(f=>f.requestSubmit());await phone.getByText('Pedido enviado!',{exact:true}).waitFor({timeout:60000});await phone.locator('[data-action=close-dialog]').first().click();
+ await p.locator('[data-view=orders]').click();await click('refresh');await p.getByText('Cliente de validação',{exact:true}).waitFor({timeout:60000});await click('import-order');await click('checkout');await submit('sale');await p.locator('#printArea').waitFor({timeout:60000});await click('close-dialog');
+ await p.reload();await p.locator('.pos-shell').waitFor({timeout:60000});assert.match(await p.locator('.company strong').innerText(),/ONLY QA UI/);
+ await mkdir('test-results',{recursive:true});await p.screenshot({path:'test-results/cloud-live-desktop.png',animations:'disabled',fullPage:true});await phone.screenshot({path:'test-results/cloud-live-mobile.png',animations:'disabled'});
+ assert.deepEqual(errors,[]);assert.deepEqual(apiErrors,[]);
+ console.log('LIVE browser passed: Pages path, signup, authenticated requests, product, register, cash change, public hash links, mobile order, ERP settlement, reload persistence.');
+}catch(e){console.error('Cloud browser validation failed:',e.message);throw e;}finally{await browser.close();await new Promise(r=>server.close(r));}

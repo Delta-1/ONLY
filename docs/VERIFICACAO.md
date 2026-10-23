@@ -47,6 +47,17 @@ As prévias em `screenshots/` foram capturadas durante esse teste. O teste usa p
 
 O teste `npm run test:pages` serve os arquivos estáticos sob `/ONLY/` e confirma que a raiz abre a tela de acesso do aplicativo, com estilos e módulos carregados. Também verifica a largura de celular, a indicação de serviço de dados ainda não conectado e a ausência de envio de credenciais para endpoints inexistentes no Pages. Com `systemUrl` configurado, verifica o encaminhamento para a aplicação hospedada.
 
+## Conexão online validada
+
+- 24 testes locais de regras de negócio, autorização, HTTP, valores e armazenamento.
+- 17 cenários de integração exercitados na função e no PostgreSQL reais: cadastro de duas empresas, login, isolamento, quatro moedas, estoque, pagamentos parciais, clientes, caixa, QR, pedidos, colaboração e autorização.
+- Duas vendas simultâneas disputaram o último item: uma foi gravada e a outra foi recusada por falta de estoque.
+- A rota de arquivos inexistentes foi corrigida e verificada novamente para retornar 404; o banco não é servido como arquivo.
+- Navegador Chromium na rota `/ONLY/`: cadastro pela tela, produto, caixa, venda com troco, pedido em outro contexto de celular, recebimento no ERP e restauração após recarregar a página.
+- SQL confirmou RLS nas quatro tabelas privadas e ausência de permissão para `anon`/`authenticated` executar o gateway interno. A função pública faz sua própria autenticação.
+
+As empresas criadas para validação usaram dados fictícios e tiveram os acessos e as lojas de teste desativados por seus identificadores específicos após a validação. Não foi criado um usuário administrador padrão para a empresa do cliente.
+
 ## Limites da validação
 
 Os pagamentos representam registros de meios de pagamento; não há confirmação com banco ou adquirente. A emissão fiscal, impressoras físicas e instalação PWA em aparelhos reais dependem dos equipamentos e não são cobertas pelos testes de API.

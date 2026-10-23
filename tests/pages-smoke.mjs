@@ -8,7 +8,7 @@ let redirectMode=false;
 const root=resolve('.');
 const server=createServer(async(req,res)=>{
   const path=new URL(req.url,'http://localhost').pathname;
-  if(path==='/ONLY/public/site-config.json'&&redirectMode){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({systemUrl:'https://only-system.example/'}));}
+  if(path==='/ONLY/public/site-config.json'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({systemUrl:redirectMode?'https://only-system.example/':''}));}
   if(!path.startsWith('/ONLY/')){res.writeHead(404);return res.end();}
   const local=path.slice('/ONLY/'.length)||'index.html';
   const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml'};

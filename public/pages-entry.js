@@ -1,10 +1,10 @@
 // GitHub Pages serves the interface. A configured system URL opens the live server.
-let systemUrl = "";
+let systemUrl = "", cloud = null;
 try {
   const response = await fetch(new URL("./site-config.json", import.meta.url), {
     cache: "no-store",
   });
-  if (response.ok) systemUrl = (await response.json()).systemUrl || "";
+  if (response.ok) { const config = await response.json(); systemUrl=config.systemUrl||""; cloud=config.supabase||null; }
 } catch {}
 if (systemUrl) {
   const target = new URL(systemUrl);
@@ -14,6 +14,7 @@ if (systemUrl) {
     throw new Error("The system URL must point to the running application.");
   location.replace(target.href);
 } else {
-  window.ONLY_STATIC_SITE = true;
+  if(cloud?.url && cloud?.publishableKey) { window.ONLY_CLOUD=cloud; window.ONLY_STATIC_SITE=false; }
+  else window.ONLY_STATIC_SITE = true;
   await import("./app.js");
 }
