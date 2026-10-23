@@ -3261,4 +3261,7 @@ dialog[open] {
   .menu-button { padding-inline: 6px; }
   .top-actions .language-select { max-width: 32px; }
   .metrics { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .menu-grid > button { min-height: 68px; flex-direction: row; align-items: center; gap: 12px; padding-right: 28px; }
+  .menu-grid strong { overflow-wrap: normal; }
 }
