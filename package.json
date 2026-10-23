@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "ONLY — PDV, ERP, catálogo e pedidos móveis para empresas",
+  "description": "ONLY \u2014 PDV, ERP, cat\u00e1logo e pedidos m\u00f3veis para empresas",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -12,7 +12,9 @@
     "dev": "node --watch server.js",
     "test": "node --test tests/*.test.js",
     "check": "node --check server.js && node --check public/app.js && node --check lib/store.js",
-    "test:browser": "node tests/browser-smoke.mjs"
+    "test:browser": "node tests/browser-smoke.mjs",
+    "pages:build": "node scripts/build-pages.mjs",
+    "test:pages": "node tests/pages-smoke.mjs"
   },
   "dependencies": {
     "qrcode": "1.5.4"

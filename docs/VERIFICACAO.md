@@ -43,6 +43,10 @@ O teste `npm run test:browser` inicia um servidor e banco temporários e verific
 
 As prévias em `screenshots/` foram capturadas durante esse teste. O teste usa produtos fictícios apenas no banco temporário; não adiciona demonstração ao banco de uso real. O CI também executa o fluxo de navegador e guarda as capturas como artefato.
 
+## Entrada no GitHub Pages
+
+O teste `npm run test:pages` serve os arquivos estáticos sob `/ONLY/` e confirma que a raiz abre a tela de acesso do aplicativo, com estilos e módulos carregados. Também verifica a largura de celular, a indicação de serviço de dados ainda não conectado e a ausência de envio de credenciais para endpoints inexistentes no Pages. Com `systemUrl` configurado, verifica o encaminhamento para a aplicação hospedada.
+
 ## Limites da validação
 
 Os pagamentos representam registros de meios de pagamento; não há confirmação com banco ou adquirente. A emissão fiscal, impressoras físicas e instalação PWA em aparelhos reais dependem dos equipamentos e não são cobertas pelos testes de API.

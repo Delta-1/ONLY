@@ -7,6 +7,7 @@ import {
 } from "./money.js";
 import { t, lang, setLanguage, errorText } from "./i18n.js";
 
+const staticSite = window.ONLY_STATIC_SITE === true;
 const $ = (s, c = document) => c.querySelector(s);
 const esc = (v) =>
   String(v ?? "").replace(
@@ -96,6 +97,7 @@ const toast = (message, error = false) => {
   toast.timer = setTimeout(() => (el.className = ""), 4500);
 };
 const api = async (path, body) => {
+  if (staticSite) throw Error("serverNotConfigured");
   let response;
   try {
     response = await fetch(path, {
@@ -174,6 +176,12 @@ function header() {
 }
 function auth() {
   app.innerHTML = `<div class="auth-shell"><aside class="auth-visual"><span class="wordmark">only<i>®</i></span><div><small>PDV + ERP</small><h1>${esc(t("loginPitch")).replace("\n", "<br>")}</h1><p>${t("loginHint")}</p><div class="auth-pills"><span>${svg("cart")} ${t("pos")}</span><span>${svg("store")} ${t("catalog")}</span><span>${svg("chart")} ${t("reports")}</span></div></div><footer>onlysystem · 2026</footer><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></aside><section class="auth-panel"><div class="auth-top">${languagePicker()}${btn("join", t("join"), "smartphone")}</div><div class="auth-form"><span class="eyebrow">ONLY SYSTEM</span><h2>${t(authTab === "login" ? "loginTitle" : "signup")}</h2><p>${t(authTab === "login" ? "loginHint" : "signupHint")}</p><div class="segmented">${btn("auth-login", t("login"), "", "", `aria-pressed="${authTab === "login"}"`)}${btn("auth-signup", t("signup"), "", "", `aria-pressed="${authTab === "signup"}"`)}</div><form data-form="${authTab}">${authTab === "signup" ? field(t("name"), "name", "", "text", 'required autocomplete="name"') + field(t("businessName"), "businessName", "", "text", 'required autocomplete="organization"') : ""}${field(t("email"), "email", "", "email", 'required autocomplete="username"')}${field(t("password"), "password", "", "password", `required minlength="8" maxlength="128" autocomplete="${authTab === "signup" ? "new-password" : "current-password"}"`)}<p class="form-error" data-inline-error hidden></p><button class="btn primary wide" type="submit">${t(authTab === "login" ? "login" : "signup")}${svg("chevron")}</button></form></div><small class="auth-foot">ONLY · PDV & ERP</small></section></div>`;
+  if (staticSite) {
+    $(".auth-form > p").insertAdjacentHTML("afterend", `<p class="notice" role="status">${t("serverConnectionNeeded")}</p>`);
+    $("[data-action=join]").hidden = true;
+    document.querySelectorAll(".auth-form form input, .auth-form form button[type=submit]").forEach(el => el.disabled = true);
+  }
+
 }
 function render() {
   if (!data) return auth();
@@ -1623,6 +1631,7 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 async function boot() {
+  if (staticSite) { setLanguage(lang()); auth(); return; }
   setLanguage(lang());
   if (path[0] === "join") {
     joinPage();
@@ -1678,6 +1687,6 @@ setInterval(async () => {
     }
   }
 }, 12000);
-if ("serviceWorker" in navigator)
+if (!staticSite && "serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 boot();

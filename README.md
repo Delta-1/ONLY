@@ -2,6 +2,14 @@
 
 Sistema para operação de balcão, gestão da empresa, loja virtual e pedidos pelo celular. Identidade preta, branca e roxa, tema escuro inicial e marca discreta **onlysystem**. Cada empresa cria seu próprio espaço; não há dados ou conexão com o banco de outra loja.
 
+## Abrir o sistema
+
+Acesse **[ONLY no GitHub Pages](https://delta-1.github.io/ONLY/)**. O endereço abre a tela do aplicativo, usando o `index.html` da raiz, em vez de publicar o README como página inicial.
+
+A tela de acesso no Pages está publicada; a conexão com o serviço de dados ainda precisa ser ativada. Enquanto isso, o aplicativo informa essa condição e não simula cadastro ou vendas. Quando o servidor estiver disponível, preencha `systemUrl` em `public/site-config.json` com seu endereço HTTPS para que o mesmo link abra automaticamente a aplicação completa. O servidor não depende de um provedor específico.
+
+Após mudar a estrutura da tela inicial, execute `npm run pages:build` para atualizar a entrada do Pages. O servidor Node continua usando `public/index.html`.
+
 ## Prévias
 
 Telas de validação com produtos fictícios, sem dados de clientes.
@@ -62,7 +70,7 @@ npm run test:browser
 
 ## Hospedar com dados compartilhados
 
-O repositório contém **frontend + servidor + SQLite**. Loja online, QR e vários aparelhos precisam de uma instância pública do servidor com armazenamento persistente. **GitHub Pages sozinho não executa este backend.** Não existe uma implantação pública automática neste repositório.
+O repositório contém **frontend + servidor + SQLite**. Loja online, QR e vários aparelhos precisam de uma instância pública do servidor com armazenamento persistente. **GitHub Pages sozinho não executa este backend.** O Pages publica a interface; a aplicação completa com banco precisa do servidor online.
 
 Para testar na mesma rede, abra `http://IP-DO-COMPUTADOR:3000` no computador antes de gerar o QR. Links gerados a partir de `localhost` só funcionam no próprio aparelho. Para produção e instalação PWA, use domínio com HTTPS.
 

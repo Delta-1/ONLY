@@ -1,4 +1,5 @@
 const entries = {
+  serverConnectionNeeded: ["O acesso ainda não está ativado. Falta conectar o serviço de dados para entrar e cadastrar a empresa.", "El acceso aún no está activado. Falta conectar el servicio de datos para entrar y registrar la empresa.", "Access is not activated yet. Connect the data service to sign in and register your business."],
   productImage: ["Imagem do produto", "Imagen del producto", "Product image"],
   retryHint: [
     "A resposta da última venda não foi confirmada. Consulte novamente para recuperar o comprovante sem duplicar a venda.",
@@ -413,6 +414,7 @@ const entries = {
   ],
 };
 const errors = {
+  serverNotConfigured: ["O serviço de dados ainda não está conectado.", "El servicio de datos aún no está conectado.", "The data service is not connected yet."],
   invalidAmount: [
     "Informe um valor válido.",
     "Ingresa un importe válido.",
