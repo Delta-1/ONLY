@@ -16,11 +16,11 @@ Cada caixa opera em uma moeda. Para receber em outra, abra ou selecione um caixa
 
 O saldo esperado contém o saldo inicial, pagamentos em dinheiro, recebimentos de contas em dinheiro e suprimentos, menos sangrias e vendas canceladas. Pix, QR, cartão e transferência ficam registrados nas vendas e não são somados ao dinheiro físico esperado.
 
-Para fechar direto no PDV, clique em **Fechar caixa** na parte inferior direita ou na faixa que mostra o caixa ativo. O botão abre a lista atualizada dos caixas abertos; o administrador vê todos os caixas da empresa, mesmo os abertos em outros aparelhos. Operadores podem fechar os próprios caixas. No celular, o botão aparece abaixo do total na aba **Venda atual**.
+Para gerenciar os caixas direto no PDV, clique em **Caixa** na barra superior, ao lado do Menu. O botão abre a lista atualizada dos caixas abertos; o administrador vê todos os caixas da empresa, mesmo os abertos em outros aparelhos. Operadores podem fechar os próprios caixas. Na mesma tela, use **Abrir caixa** para abrir outro caixa. No celular, o acesso fica no ícone de carteira na barra superior, disponível tanto em **Produtos** quanto em **Venda atual**.
 
 Em cada caixa, clique em **Fechar caixa**, informe o dinheiro contado e a **Senha do caixa**, confira a diferença e confirme. A senha inicial é **1234**. O administrador pode trocá-la em **Configurações/Personalização → Segurança do caixa**, usando de 4 a 8 números. Deixar os campos de nova senha vazios mantém a senha atual. A senha é verificada no servidor, não é devolvida pela API e tem apenas sua representação protegida armazenada quando configurada. Tentativas são limitadas.
 
-Depois de fechar um caixa pela lista, ela é atualizada para fechar o próximo sem sair da tela. Cancelar mantém o caixa aberto. O fechamento afeta somente o caixa indicado e mantém os itens ainda no carrinho. Quando não há caixas abertos, o botão do PDV mostra **Abrir caixa**.
+Depois de fechar um caixa pela lista, ela é atualizada para fechar o próximo sem sair da tela. Cancelar mantém o caixa aberto. O fechamento afeta somente o caixa indicado e mantém os itens ainda no carrinho. Quando não há caixas abertos, o botão **Caixa** continua abrindo essa tela, com a opção **Abrir caixa**.
 
 A diferença é gravada junto com o horário de abertura e fechamento. O relatório inclui essas informações em tabela. O caminho **Menu → Gestão da empresa → Caixa** continua disponível.
 

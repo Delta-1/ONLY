@@ -128,6 +128,9 @@ try {
   await p.locator("#search").fill("CAF-001");
   await p.locator("#search").press("Enter");
   assert.equal(await p.locator(".cart-line").count(), 2);
+  await p.locator('.topbar [data-action="registers"]').click();
+  await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
+  assert.equal(await p.locator('.register-card').count(),0);
   await click("register");
   await p.locator('dialog [name="name"]').fill("Caixa 01");
   await p.locator('dialog [name="opening"]').fill("100");
@@ -248,7 +251,7 @@ try {
     const w = await (await fetch("/api/workspace")).json();
     return w.registers.find((r) => !r.closed);
   });
-  await p.locator('.pos-register-strip [data-action="registers"]').click();
+  await p.locator('.topbar [data-action="registers"]').click();
   await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
   await p.locator(`[data-action="close-register"][data-id="${registerBeforeClose.id}"]`).click();
   await p.locator('[data-form="close-register"]').waitFor();
@@ -261,7 +264,7 @@ try {
   assert.equal(stillOpen.closed, null, "cancel leaves the register open");
   const otherRegister = await p.evaluate(async () => (await fetch('/api/registers/open', {method:'POST', headers:{'Content-Type':'application/json','X-Only-Request':'1'}, body:JSON.stringify({name:'Outro caixa',currency:'BRL',opening:50})})).json());
   await click('mobile-cart');
-  await p.locator('.register-dock').click();
+  await p.locator('.topbar [data-action="registers"]').click();
   await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
   assert.equal(await p.locator('.register-card').count(),2);
   await p.screenshot({path:join(artifacts,'todos-caixas-mobile.png'),fullPage:true,animations:'disabled'});
@@ -297,7 +300,7 @@ try {
   await p.locator('[data-form="close-register"]').waitFor();
   assert.equal(await p.locator('[name="id"]').inputValue(),otherRegister.id);
   await p.locator('.modal-footer [data-action="close-dialog"]').click();
-  await click('pos');await p.locator('.register-dock').click();
+  await click('pos');await p.locator('.topbar [data-action="registers"]').click();
   await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
   await p.locator(`[data-action="close-register"][data-id="${otherRegister.id}"]`).click();
   await p.locator('[name="counted"]').fill('50');await p.locator('[name="pin"]').fill('5678');
@@ -305,7 +308,12 @@ try {
   await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
   assert.equal(await p.locator('.register-card').count(),0);
   await p.locator('.modal-footer [data-action="close-dialog"]').click();
-  assert.equal(await p.locator('.register-dock').innerText(),'Abrir caixa');
+  assert.equal(await p.locator('.topbar [data-action="registers"]').innerText(),'Caixa');
+  assert.equal(await p.locator('.cart-panel [data-action="registers"], .pos-register-strip button').count(),0);
+  await p.locator('.topbar [data-action="registers"]').click();
+  await p.getByRole('heading',{name:'Caixas abertos',exact:true}).waitFor();
+  assert.ok(await p.locator('dialog [data-action="register"]').isVisible());
+  await p.locator('.modal-footer [data-action="close-dialog"]').click();
   console.log('Register closing passed: central manager, independent registers, custom PIN enforcement, cancel, discrepancy, preserved cart, ERP.');
   console.log('Feedback passed: success chime and popover after persisted sale; independent saved toggles disable feedback.');
   console.log(
