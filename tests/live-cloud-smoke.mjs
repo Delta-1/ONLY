@@ -402,6 +402,7 @@ test("cancelled sales restore stock and cash once; closed registers reject new s
   const close = await good("/api/registers/close", {
     id: register.id,
     counted: 50,
+    pin: "1234",
   });
   assert.equal(close.expected, 5000);
   assert.equal(close.difference, 0);

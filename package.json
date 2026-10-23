@@ -11,7 +11,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check server.js && node --check public/app.js && node --check lib/store.js && node --check public/cloud.js && node --check supabase/functions/only/handler.js && node --check supabase/functions/only/domain.js",
+    "check": "node --check server.js && node --check public/app.js && node --check lib/store.js && node --check public/cloud.js && node --check public/feedback.js && node --check supabase/functions/only/handler.js && node --check supabase/functions/only/domain.js",
     "test:browser": "node tests/browser-smoke.mjs",
     "pages:build": "node scripts/build-pages.mjs",
     "test:pages": "node tests/pages-smoke.mjs"

@@ -1,17 +1,19 @@
-import {defaults,initialState,mutate,publicCatalog,publicMutation,resolveLink,workspace,fail,text,id,hex,owner} from './domain.js';
+import {defaults,initialState,mutate,publicCatalog,publicMutation,resolveLink,workspace,fail,text,id,hex,owner,openRegister} from './domain.js';
 const enc=new TextEncoder();
 export async function digest(value){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(value))),v=>v.toString(16).padStart(2,'0')).join('');}
 const checkPassword=p=>{if(typeof p!=='string'||p.length<8||p.length>128)fail('passwordLength');return p;};
 async function derive(pass,salt,iterations){const key=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveBits']);return Array.from(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(salt),iterations},key,256)),v=>v.toString(16).padStart(2,'0')).join('');}
 export async function passwordHash(pass){checkPassword(pass);const salt=hex(16);return `pbkdf2$600000$${salt}$${await derive(pass,salt,600000)}`;}
 export async function passwordMatches(pass,encoded){if(typeof pass!=='string'||pass.length>128||!encoded)return false;const [kind,n,salt,expected]=encoded.split('$');if(kind!=='pbkdf2'||Number(n)!==600000||!salt||!expected)return false;const actual=await derive(pass,salt,Number(n));let diff=actual.length^expected.length;for(let i=0;i<actual.length;i++)diff|=actual.charCodeAt(i)^expected.charCodeAt(i);return diff===0;}
+export async function closingPinHash(pin){if(typeof pin!=='string'||!/^\d{4,8}$/.test(pin))fail('closingPinLength');return passwordHash(`only-pin:${pin}`);}
+export async function closingPinMatches(pin,encoded){if(typeof pin!=='string'||!/^\d{4,8}$/.test(pin))return false;return encoded?passwordMatches(`only-pin:${pin}`,encoded):await digest(pin)===await digest('1234');}
 const safeUser=a=>({id:a.id,business:a.business,email:a.email,name:a.name,role:a.role});
 const checkedEmail=e=>{const v=text(e).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))fail('invalidEmail');return v;};
 export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY/'}){
  const pageOrigin=new URL(publicBase).origin;
  const limit=async(key,max)=>{const r=await rpc('rate_limit',{key:await digest(key),maximum:max});if(!r?.allowed)fail('rateLimited',429);};
  const findWorkspace=async(params)=>{const row=await rpc('read_workspace',params);if(!row)fail('notFound',404);return row;};
- async function changeWorkspace(params,fn){for(let i=0;i<7;i++){const row=await findWorkspace(params),state=structuredClone(row.body),result=fn(state);const saved=await rpc('write_workspace',{id:row.id,version:row.version,body:state});if(saved?.updated)return result;}fail('concurrentUpdate',409);}
+ async function changeWorkspace(params,fn){for(let i=0;i<7;i++){const row=await findWorkspace(params),state=structuredClone(row.body),result=await fn(state);const saved=await rpc('write_workspace',{id:row.id,version:row.version,body:state});if(saved?.updated)return result;}fail('concurrentUpdate',409);}
  return async req=>{
   const origin=req.headers.get('origin')||'',allowed=!origin||origin===pageOrigin||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
   const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Access-Control-Allow-Origin':allowed?(origin||pageOrigin):pageOrigin,'Access-Control-Allow-Headers':'apikey,content-type,x-only-request,x-only-session,authorization','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Vary':'Origin'};
@@ -54,7 +56,9 @@ export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY
    if(path==='/api/users'){owner(user);const email=checkedEmail(b.email),name=text(b.name);if(!name)fail('required');const added=await rpc('add_user',{actor:user.id,business:user.business,id:id(),email,name,password_hash:await passwordHash(b.password)});return send(safeUser(added));}
    if(path==='/api/password'){const saved=await rpc('account_email',{email:user.email});if(!await passwordMatches(b.currentPassword,saved.password_hash))fail('invalidLogin',401);return send(await rpc('change_password',{id:user.id,password_hash:await passwordHash(b.password),keep_hash:sessionHash}));}
    const linkToken=path==='/api/links'?hex(24):'',context=linkToken?{linkToken,linkHash:await digest(linkToken),linkCode:hex(6).toUpperCase()}:{};
-   return send(await changeWorkspace(params,s=>mutate(s,user,path,b,context)),path==='/api/sales'?201:200);
+   if(path==='/api/settings'&&b.closePin){owner(user);context.closePinHash=await closingPinHash(b.closePin);}
+   if(path==='/api/registers/close')await limit(`closing-pin:${user.business}:${user.id}:${Math.floor(Date.now()/60000)}`,30);
+   return send(await changeWorkspace(params,async s=>{if(path==='/api/registers/close'){openRegister(s,b.id,user);if(!await closingPinMatches(b.pin,s.business.closePinHash))fail('invalidClosingPin',403);context.closePinVerified=true;}return mutate(s,user,path,b,context);}),path==='/api/sales'?201:200);
   }catch(e){if(!e.status&&!['emailUsed','forbidden'].includes(e.message))console.error('ONLY cloud request failed:',e.message);const message=e.status?e.message:e.message==='emailUsed'?'emailUsed':'serverError';return send({error:message},e.status|| (message==='emailUsed'?409:500));}
  };
 }

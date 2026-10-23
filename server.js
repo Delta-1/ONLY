@@ -174,6 +174,7 @@ export function createApp({
         if (mutation && path === "/api/registers/close") {
           const r = store.register(b, body.id);
           if (r.user !== u.id) store.owner(u);
+          limit(`closing-pin:${b}:${u.id}`, 30, 60000);
           return send(store.closeRegister(b, body));
         }
         if (mutation && path === "/api/movements") {

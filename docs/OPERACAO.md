@@ -16,13 +16,23 @@ Cada caixa opera em uma moeda. Para receber em outra, abra ou selecione um caixa
 
 O saldo esperado contém o saldo inicial, pagamentos em dinheiro, recebimentos de contas em dinheiro e suprimentos, menos sangrias e vendas canceladas. Pix, QR, cartão e transferência ficam registrados nas vendas e não são somados ao dinheiro físico esperado.
 
-Para fechar direto no PDV, clique em **Fechar caixa** na faixa que mostra o caixa ativo. No celular, o botão também aparece abaixo do total na aba **Venda atual**. Informe o dinheiro contado, confira a diferença e clique em **Confirmar fechamento**. Cancelar mantém o caixa aberto. O fechamento afeta somente o caixa indicado e mantém os itens ainda no carrinho.
+Para fechar direto no PDV, clique em **Fechar caixa** na parte inferior direita ou na faixa que mostra o caixa ativo. O botão abre a lista atualizada dos caixas abertos; o administrador vê todos os caixas da empresa, mesmo os abertos em outros aparelhos. Operadores podem fechar os próprios caixas. No celular, o botão aparece abaixo do total na aba **Venda atual**.
+
+Em cada caixa, clique em **Fechar caixa**, informe o dinheiro contado e a **Senha do caixa**, confira a diferença e confirme. A senha inicial é **1234**. O administrador pode trocá-la em **Configurações/Personalização → Segurança do caixa**, usando de 4 a 8 números. Deixar os campos de nova senha vazios mantém a senha atual. A senha é verificada no servidor, não é devolvida pela API e tem apenas sua representação protegida armazenada quando configurada. Tentativas são limitadas.
+
+Depois de fechar um caixa pela lista, ela é atualizada para fechar o próximo sem sair da tela. Cancelar mantém o caixa aberto. O fechamento afeta somente o caixa indicado e mantém os itens ainda no carrinho. Quando não há caixas abertos, o botão do PDV mostra **Abrir caixa**.
 
 A diferença é gravada junto com o horário de abertura e fechamento. O relatório inclui essas informações em tabela. O caminho **Menu → Gestão da empresa → Caixa** continua disponível.
 
 O valor recebido menor que o total exige um cliente identificado e a confirmação para registrar o restante em conta. Receba depois em **Clientes → Receber**. O comprovante preserva o que foi recebido e o que ficou pendente no momento da venda.
 
 Cancelamentos exigem administrador e caixa ainda aberto. Quando há recebimentos posteriores na conta, o sistema bloqueia o cancelamento automático para não invalidar os recebimentos já registrados.
+
+## Sons e animações
+
+Em **Menu → Personalização**, ative ou desative separadamente **Sons suaves nos botões e nas vendas** e **Brilho verde e confirmação ao concluir a venda**, depois salve. As preferências ficam salvas para a empresa. Os sons são sintetizados no próprio navegador em volume suave; o navegador libera o áudio após a primeira interação.
+
+Som de conclusão, brilho e OK aparecem somente depois da confirmação do servidor. Reabrir ou reimprimir um comprovante não gera uma nova celebração. A animação não captura cliques nem altera o comprovante impresso. Com movimento reduzido ativado no aparelho, o brilho é removido e o OK aparece sem movimento.
 
 ## Pedidos e links
 

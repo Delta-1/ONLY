@@ -111,6 +111,18 @@ const entries = {
   later: ["Agora não", "Ahora no", "Not now"],
   registerName: ["Nome do caixa", "Nombre de caja", "Register name"],
   opening: ["Saldo inicial", "Saldo inicial", "Opening balance"],
+  openRegisters: ["Caixas abertos", "Cajas abiertas", "Open registers"],
+  registersManagerHint: ["Confira e feche os caixas abertos por aqui, sem trocar de aparelho.", "Revisa y cierra las cajas abiertas desde aquí, sin cambiar de dispositivo.", "Review and close open registers here from any device."],
+  operator: ["Operador", "Operador", "Operator"],
+  closingPin: ["Senha do caixa", "Clave de caja", "Register closing PIN"],
+  newClosingPin: ["Nova senha do caixa", "Nueva clave de caja", "New closing PIN"],
+  confirmClosingPin: ["Confirmar nova senha", "Confirmar nueva clave", "Confirm new PIN"],
+  cashSecurity: ["Segurança do caixa", "Seguridad de caja", "Register security"],
+  closingPinHint: ["Senha inicial: 1234. Use de 4 a 8 números. Deixe os campos vazios para manter a senha atual.", "Clave inicial: 1234. Usa de 4 a 8 números. Deja los campos vacíos para conservar la clave actual.", "Initial PIN: 1234. Use 4 to 8 digits. Leave blank to keep the current PIN."],
+  feedbackTitle: ["Sons e animações", "Sonidos y animaciones", "Sounds and animations"],
+  soundEffects: ["Sons suaves nos botões e nas vendas", "Sonidos suaves en botones y ventas", "Soft sounds for buttons and sales"],
+  saleAnimations: ["Brilho verde e confirmação ao concluir a venda", "Brillo verde y confirmación al completar la venta", "Green glow and confirmation on completed sales"],
+  feedbackHint: ["A confirmação acontece depois que a venda é salva. Você pode ativar ou desativar cada efeito separadamente.", "La confirmación ocurre después de guardar la venta. Puedes activar o desactivar cada efecto por separado.", "Confirmation happens after the sale is saved. Each effect can be enabled independently."],
   closeRegister: ["Fechar caixa", "Cerrar caja", "Close register"],
   confirmCloseRegister: ["Confirmar fechamento", "Confirmar cierre", "Confirm closing"],
   counted: ["Dinheiro contado", "Efectivo contado", "Counted cash"],
@@ -415,6 +427,9 @@ const entries = {
   ],
 };
 const errors = {
+  closingPinLength: ["Use uma senha de 4 a 8 números.", "Usa una clave de 4 a 8 números.", "Use a PIN with 4 to 8 digits."],
+  invalidClosingPin: ["Senha do caixa incorreta. Confira e tente novamente.", "Clave de caja incorrecta. Revisa e inténtalo de nuevo.", "Incorrect closing PIN. Please try again."],
+  closingPinMismatch: ["As senhas do caixa não conferem.", "Las claves de caja no coinciden.", "The closing PINs do not match."],
  concurrentUpdate: ["Outro caixa atualizou os dados. Tente novamente.", "Otra caja actualizó los datos. Inténtalo de nuevo.", "Another register updated the data. Please retry."],
   serverNotConfigured: ["O serviço de dados ainda não está conectado.", "El servicio de datos aún no está conectado.", "The data service is not connected yet."],
   invalidAmount: [

@@ -1,3 +1,4 @@
+import { createFeedback } from "./feedback.js";
 import { cloud, request, routeUrl, qrUrl } from "./cloud.js";
 import { svg } from "./icons.js";
 import {
@@ -41,6 +42,7 @@ let mobileView = "products";
 let selectedRegister = "",
   pendingSale = null,
   lastOrderCount = 0;
+let closingFromManager = false;
 try {
   pendingSale = JSON.parse(
     sessionStorage.getItem("only.pendingSale") || "null",
@@ -112,6 +114,10 @@ const notifyError = (e) => {
   } else toast(message, true);
 };
 const settings = () => data?.business || {};
+const feedback = createFeedback(() => ({
+  sound: Boolean(data?.user && !publicMode && settings().soundEffects !== false),
+  animations: Boolean(data?.user && !publicMode && settings().saleAnimations !== false),
+}));
 const isOwner = () => data?.user?.role === "owner";
 const currentRegister = () =>
   data?.registers?.find((r) => r.id === selectedRegister && !r.closed);
@@ -247,7 +253,7 @@ function pos() {
     reg = currentRegister(),
     sum = subtotal();
   const show = publicMode || settings().showCatalog !== false;
-  return `<div class="pos-shell ${show ? "" : "no-catalog"}"><section class="catalog-area"><div class="section-title"><div><span class="eyebrow">${publicMode ? esc(settings().name) : "ONLY POINT OF SALE"}</span><h1>${t(publicMode === "store" ? "catalog" : publicMode ? "mobile" : "pos")}<span class="live-dot"></span></h1><p>${publicMode ? esc(settings().storeDescription || t("storeHint")) : t("noConversion")}</p></div>${!publicMode ? `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}">${currencyOptions(posCurrency)}</select></div>` : ""}</div>${!publicMode && reg ? `<div class="pos-register-strip"><div>${svg("wallet")}<span><strong>${esc(reg.name)}</strong><small>${t("registerOpen")} · ${reg.currency}</small></span></div>${btn("close-current-register", t("closeRegister"), "close")}</div>` : ""}<div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div>${!publicMode && reg ? btn("close-current-register", t("closeRegister"), "close", "cart-close-register") : ""}</div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
+  return `<div class="pos-shell ${show ? "" : "no-catalog"}"><section class="catalog-area"><div class="section-title"><div><span class="eyebrow">${publicMode ? esc(settings().name) : "ONLY POINT OF SALE"}</span><h1>${t(publicMode === "store" ? "catalog" : publicMode ? "mobile" : "pos")}<span class="live-dot"></span></h1><p>${publicMode ? esc(settings().storeDescription || t("storeHint")) : t("noConversion")}</p></div>${!publicMode ? `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}">${currencyOptions(posCurrency)}</select></div>` : ""}</div>${!publicMode && reg ? `<div class="pos-register-strip"><div>${svg("wallet")}<span><strong>${esc(reg.name)}</strong><small>${t("registerOpen")} · ${reg.currency}</small></span></div>${btn("registers", t("closeRegister"), "wallet")}</div>` : ""}<div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div>${!publicMode ? btn("registers", t(data.registers.some(canUseRegister) ? "closeRegister" : "openRegister"), "wallet", "register-dock") : ""}</div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
 }
 const posState = { clientId: "", discount: "0", notes: "" };
 Object.assign(pos, posState);
@@ -608,7 +614,7 @@ function settingsFields(section = "all") {
       ],
       b.menuPosition,
     ),
-  )}${check("showCatalog", t("showCatalog"), b.showCatalog)}</div><div class="layout-previews"><div class="layout-preview ${b.layout === "clean" ? "selected" : ""}"><div class="preview-top"></div><div class="preview-blocks"><i></i><i></i><i></i><b></b></div><small>${t("clean")}</small></div><div class="layout-preview classic ${b.layout === "classic" ? "selected" : ""}"><div class="preview-top"></div><div class="preview-blocks"><i></i><i></i><i></i><b></b></div><small>${t("classic")}</small></div></div>${imageField(b.logo)}`;
+  )}${check("showCatalog", t("showCatalog"), b.showCatalog)}</div><div class="feedback-settings"><h3>${t("feedbackTitle")}</h3>${check("soundEffects",t("soundEffects"),b.soundEffects !== false)}${check("saleAnimations",t("saleAnimations"),b.saleAnimations !== false)}<p class="hint">${t("feedbackHint")}</p></div><div class="layout-previews"><div class="layout-preview ${b.layout === "clean" ? "selected" : ""}"><div class="preview-top"></div><div class="preview-blocks"><i></i><i></i><i></i><b></b></div><small>${t("clean")}</small></div><div class="layout-preview classic ${b.layout === "classic" ? "selected" : ""}"><div class="preview-top"></div><div class="preview-blocks"><i></i><i></i><i></i><b></b></div><small>${t("classic")}</small></div></div>${imageField(b.logo)}<h3>${t("cashSecurity")}</h3><p class="hint">${t("closingPinHint")}</p><div class="form-grid">${field(t("newClosingPin"),"closePin","","password",'inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password"')}${field(t("confirmClosingPin"),"closePinConfirm","","password",'inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password"')}</div>`;
 }
 function settingsPage() {
   return (
@@ -668,7 +674,7 @@ function menu() {
     ["mobile", "mobile", "smartphone"],
     ["erp", "erp", "monitor"],
     ["store", "catalog", "store"],
-    ["register", "cash", "wallet"],
+    ["registers", "cash", "wallet"],
   ];
   modal(
     t("menu"),
@@ -696,16 +702,25 @@ function registerModal(question = false) {
     $('.modal-footer button[data-action="close-dialog"]').textContent =
       t("later");
 }
-async function closeRegisterModal(id) {
+async function registersModal() {
+  await load(true);
+  render();
+  const registers = data.registers.filter(canUseRegister);
+  modal(t("openRegisters"),
+    `<p class="hint">${t("registersManagerHint")}</p><div class="register-list">${registers.length ? registers.map(r => `<article class="register-card"><div><h3>${esc(r.name)}</h3><small>${esc(data.users?.find(u => u.id === r.user)?.name || (r.user === data.user.id ? data.user.name : t("operator")))} · ${r.currency}</small><small>${date(r.opened)}</small></div><div class="register-card-balance"><small>${t("expected")}</small><strong>${money(r.expected,r.currency)}</strong></div>${btn("close-register",t("closeRegister"),"close","",`data-id="${r.id}" data-manager="1"`)}</article>`).join("") : empty(t("noRegister"),t("openHint"),"wallet")}</div>`,
+    btn("close-dialog",t("close")) + btn("register",t("openRegister"),"plus","primary"), true);
+}
+async function closeRegisterModal(id, fromManager = false) {
   // Refresh the selected register before showing its cash balance.
   await load(true);
   const r = data.registers.find((r) => r.id === id);
   if (!r || r.closed) { render(); throw Error("registerClosed"); }
   if (!canUseRegister(r)) throw Error("forbidden");
+  closingFromManager = fromManager;
   formModal(
     t("closeRegister"),
     "close-register",
-    `<input type="hidden" name="id" value="${r.id}"><h3>${esc(r.name)} · ${r.currency}</h3><div class="payment-total"><small>${t("expected")}</small><strong>${money(r.expected, r.currency)}</strong></div>${field(t("counted"), "counted", "", "number", 'required min="0" step="0.01"')}<div class="total-row" data-closing-difference hidden><span>${t("difference")}</span><strong aria-live="polite"></strong></div>`,
+    `<input type="hidden" name="id" value="${r.id}"><h3>${esc(r.name)} · ${r.currency}</h3><div class="payment-total"><small>${t("expected")}</small><strong>${money(r.expected, r.currency)}</strong></div>${field(t("counted"), "counted", "", "number", 'required min="0" step="0.01"')}<div class="total-row" data-closing-difference hidden><span>${t("difference")}</span><strong aria-live="polite"></strong></div>${field(t("closingPin"), "pin", "", "password", 'required inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="off"')}`,
     `data-expected="${r.expected}" data-currency="${r.currency}"`,
   );
   $('.modal-footer button[type="submit"]').textContent = t("confirmCloseRegister");
@@ -777,6 +792,7 @@ function updateTender() {
     `<span>${t(summary.remaining ? "remaining" : "change")}</span><strong>${summary.valid ? money(cents(summary.remaining || summary.change)) : "—"}</strong>`;
 }
 function receipt(s) {
+  feedback.clear();
   lastReceipt = s;
   const b = settings();
   const content = `<article class="receipt" id="printArea">${b.logo ? `<img class="receipt-logo" src="${esc(b.logo)}" alt="">` : ""}<h2>${esc(b.name)}</h2><p>${esc(b.taxId)}<br>${esc(b.address)}<br>${esc(b.phone)}</p><hr><h3>${t("receipt")}</h3><strong>${esc(s.number)}</strong><p>${date(s.date)}<br>${t("seller")}: ${esc(s.seller)}</p>${table(
@@ -839,12 +855,16 @@ function serializeProduct(form) {
 function settingsBody(form) {
   const f = Object.fromEntries(new FormData(form)),
     old = settings();
+  if (f.closePin && f.closePin !== f.closePinConfirm) throw Error("closingPinMismatch");
+  delete f.closePinConfirm;
   return {
     ...old,
     minOrder: old.minOrder / 100,
     ...f,
     logo: f.imageData ?? old.logo,
     showCatalog: form.elements.showCatalog?.checked ?? old.showCatalog,
+    soundEffects: form.elements.soundEffects?.checked ?? old.soundEffects ?? true,
+    saleAnimations: form.elements.saleAnimations?.checked ?? old.saleAnimations ?? true,
   };
 }
 async function saveSettings(body) {
@@ -928,6 +948,7 @@ async function sendSale(payload) {
   }
   render();
   receipt(sale);
+  feedback.sale(sale.id, t("saleDone"));
 }
 async function retrySale() {
   if (!pendingForBusiness()) return;
@@ -1216,8 +1237,9 @@ const actions = {
     posCurrency = currentRegister().currency;
     render();
   },
+  registers: () => registersModal(),
   "close-current-register": () => closeRegisterModal(selectedRegister),
-  "close-register": (el) => closeRegisterModal(el.dataset.id),
+  "close-register": (el) => closeRegisterModal(el.dataset.id, el.dataset.manager === "1"),
   movement: () => {
     const registers = data.registers.filter(canUseRegister);
     if (!registers.length) return registerModal();
@@ -1309,7 +1331,13 @@ async function run(action, el) {
     notifyError(e);
   }
 }
+document.addEventListener("pointerdown", () => feedback.unlock(), { capture: true });
+document.addEventListener("keydown", (e) => {
+  if (["Enter", " ", "F9"].includes(e.key)) feedback.unlock();
+}, { capture: true });
 document.addEventListener("click", (e) => {
+  const control = e.target.closest("button, .file-label");
+  if (control && !control.disabled && !busy) feedback.click();
   const el = e.target.closest("[data-action]");
   if (el) {
     e.preventDefault();
@@ -1518,6 +1546,7 @@ document.addEventListener("submit", async (e) => {
       await api("/api/registers/close", fields);
       dialog.close();
       await refresh();
+      if (closingFromManager) { closingFromManager = false; await registersModal(); }
       toast(t("registerClosed"));
     }
     if (kind === "movement") {

@@ -48,7 +48,9 @@ npm run test:browser
 - Pagamento parcial com confirmação explícita e cliente identificado, saldo a receber e recebimento posterior. Relatório considera o saldo pendente após recebimentos.
 - Comprovante térmico, reimpressão, cancelamento com devolução do estoque e ajuste do caixa ainda aberto. A emissão fiscal não está integrada.
 - ERP: produtos, clientes, estoque, pedidos, relatórios por período e moeda, exportação CSV e impressão/PDF pelo navegador.
-- Personalização: logo da empresa, tema claro/escuro, modelos **Essencial** e **Clássico**, menu em grade/lista e exibição do catálogo no PDV.
+- Personalização: logo da empresa, tema claro/escuro, modelos **Essencial** e **Clássico**, menu em grade/lista, catálogo no PDV e controles independentes para sons suaves e animação de venda concluída.
+- Venda salva: toque de confirmação, brilho verde breve e OK no canto inferior direito, mantendo o comprovante no centro. A preferência de movimento reduzido elimina o brilho animado. Reimpressões não disparam a celebração.
+- Gestão dos caixas abertos em uma tela do PDV. O administrador pode encerrar os caixas da empresa a partir do mesmo aparelho. Cada fechamento exige a senha do caixa, inicialmente **1234**, configurável com 4 a 8 números. A senha de acesso do usuário é independente.
 - Interface em português, espanhol e inglês.
 - Loja online com endereço próprio da empresa, QR Code, cópia e compartilhamento do link. Cliente monta o pedido sem login; o ERP recebe para atendimento e pagamento no PDV.
 - Totem móvel por link, QR ou código digitado em `/join`. Quantos celulares forem necessários podem enviar pedidos para a mesma empresa.
@@ -60,7 +62,7 @@ npm run test:browser
 
 **Balcão:** entrar → PDV → abrir caixa ou escolher Agora não → adicionar itens → escolher cliente/desconto → receber → comprovante.
 
-**Fechamento:** no PDV, Fechar caixa → informar dinheiro contado → conferir diferença → Confirmar fechamento. No celular, o botão também aparece na aba Venda atual.
+**Fechamento:** botão Abrir/Fechar caixa na parte inferior do PDV → lista de caixas abertos → Fechar caixa no caixa desejado → informar dinheiro contado e senha → conferir diferença → Confirmar fechamento. A lista é atualizada para fechar o próximo caixa. No celular, o botão fica na aba Venda atual.
 
 **Gestão:** Menu → Gestão da empresa → produtos, clientes, pedidos, caixa, relatórios, equipe ou configurações.
 

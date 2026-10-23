@@ -3290,3 +3290,36 @@ dialog[open] {
   .cart-close-register { display: flex; width: 100%; margin-top: 14px; }
   .modal-footer .btn { min-width: 0; white-space: normal; text-align: center; }
 }
+
+.feedback-settings { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 20px; margin: 20px 0; }
+.feedback-settings h3 { margin-bottom: 14px; }
+.feedback-settings .toggle + .toggle { margin-top: 12px; }
+.feedback-settings .hint { margin-bottom: 0; }
+.register-dock { display: flex; width: 100%; margin-top: 14px; }
+.register-list { display: grid; gap: 14px; }
+.register-card { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 20px; }
+.register-card > div:first-child { flex: 1; min-width: 150px; overflow-wrap: anywhere; }
+.register-card small { display: block; margin-top: 5px; font-size: 0.777778rem; }
+.register-card-balance { min-width: 130px; }
+.register-card-balance strong { display: block; margin-top: 6px; font-size: 1.111111rem; }
+.sale-feedback-layer { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; background: transparent; color: #fff; pointer-events: none; z-index: 1000; }
+.sale-feedback-layer::backdrop { background: transparent; pointer-events: none; }
+.sale-edge-glow { position: absolute; inset: 0; pointer-events: none; border: 3px solid #66e6a4; box-shadow: inset 0 0 55px 8px #32cd8055; animation: sale-glow 850ms ease-out both; }
+.sale-success-badge { position: absolute; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 13px; max-width: calc(100% - 32px); padding: 15px 20px; border: 1px solid #81e8b1; border-radius: 14px; background: #143b2c; color: #fff; box-shadow: 0 12px 45px #0005; animation: sale-badge 2600ms ease both; }
+.sale-success-check { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; background: #b1f5d1; color: #123c29; font-size: 1.333333rem; font-weight: 700; }
+.sale-success-badge b { display: block; font-size: 1rem; }
+.sale-success-badge small { display: block; color: #e0ffed; font-size: 0.833333rem; }
+@keyframes sale-glow { 0% { opacity: 0; } 22% { opacity: 0.85; } 100% { opacity: 0; } }
+@keyframes sale-badge { 0% { opacity: 0; transform: translateY(8px); } 12%, 86% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(4px); } }
+@media screen and (max-width: 620px) {
+  .register-card { padding: 16px; gap: 14px; }
+  .register-card > .btn { width: 100%; }
+  .sale-success-badge { right: 16px; bottom: max(85px, env(safe-area-inset-bottom)); padding: 12px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sale-edge-glow { display: none; }
+  .sale-success-badge { animation: none; transform: none; }
+}
+@media print {
+  .sale-feedback-layer { display: none !important; }
+}

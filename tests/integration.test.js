@@ -428,6 +428,7 @@ test("cancelled sales restore stock and cash once; closed registers reject new s
   const close = await good("/api/registers/close", {
     id: register.id,
     counted: 50,
+    pin: "1234",
   });
   assert.equal(close.expected, 5000);
   assert.equal(close.difference, 0);
@@ -540,4 +541,30 @@ test("sales in BOB, USD and EUR use native prices without conversion", async () 
     assert.equal(s.total, expected);
     assert.equal(s.change, 0);
   }
+});
+
+test('closing PIN and feedback settings persist without exposing the PIN hash', async () => {
+  const first = await good('/api/registers/open',{name:'PIN validation 1',currency:'BRL',opening:20});
+  const second = await good('/api/registers/open',{name:'PIN validation 2',currency:'BRL',opening:30});
+  for (const pin of [undefined,'9999']) {
+    const result=await call('/api/registers/close',{id:first.id,counted:20,pin},owner);
+    assert.equal(result.status,403); assert.equal(result.body.error,'invalidClosingPin');
+  }
+  await good('/api/registers/close',{id:first.id,counted:20,pin:'1234'});
+  const before=(await good('/api/workspace')).business;
+  const changed=await good('/api/settings',{...before,minOrder:before.minOrder/100,closePin:'5678',soundEffects:false,saleAnimations:true});
+  assert.equal(changed.closePinHash,undefined); assert.equal(changed.closePin,undefined);
+  const settings=(await good('/api/workspace')).business;
+  assert.equal(settings.soundEffects,false);assert.equal(settings.saleAnimations,true);assert.equal(settings.closePinHash,undefined);
+  const wrong=await call('/api/registers/close',{id:second.id,counted:30,pin:'1234'},owner);
+  assert.equal(wrong.body.error,'invalidClosingPin');
+  assert.equal((await call('/api/settings',{...settings,closePin:'123'},owner)).body.error,'closingPinLength');
+  assert.equal((await call('/api/settings',{...settings,closePin:'9999'},operator)).status,403);
+  await good('/api/settings',{...settings,minOrder:settings.minOrder/100,soundEffects:false,saleAnimations:false});
+  assert.ok(store.business(before.id).closePinHash);
+  assert.ok(!store.business(before.id).closePinHash.includes('5678'));
+  await good('/api/registers/close',{id:second.id,counted:30,pin:'5678'});
+  const foreign=await call('/api/registers/close',{id:second.id,counted:30,pin:'5678'},other);
+  assert.equal(foreign.status,400);
+  assert.equal(foreign.body.error,"openRegisterRequired");
 });
