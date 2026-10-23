@@ -1,0 +1,12 @@
+services:
+  only:
+    build: .
+    ports: ["3000:3000"]
+    volumes: ["only-data:/app/data"]
+    environment:
+      NODE_ENV: production
+      # Enable only behind an HTTPS reverse proxy:
+      COOKIE_SECURE: "false"
+    restart: unless-stopped
+volumes:
+  only-data:

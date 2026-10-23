@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "ONLY — PDV & ERP",
+  "short_name": "ONLY",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111015",
+  "theme_color": "#111015",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
