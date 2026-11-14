@@ -102,7 +102,7 @@ export function createApp({
         }
         if (path === "/api/qr" && req.method === "GET") {
           const relative = url.searchParams.get("path") || "";
-          if (!/^\/(store|mobile|collaborate)\/[A-Za-z0-9_-]+$/.test(relative))
+          if (!/^\/(store|mobile|collaborate|waiter|table)\/[A-Za-z0-9_-]+$/.test(relative))
             fail("invalidLink");
           const svg = await QRCode.toString(origin + relative, {
             type: "svg",
@@ -128,10 +128,16 @@ export function createApp({
           return send({ path: `/mobile/${l.code}` });
         }
         const pub = path.match(
-          /^\/api\/public\/(store|mobile|collaborate)\/([A-Za-z0-9_-]+)(?:\/(order|draft))?$/,
+          /^\/api\/public\/(store|mobile|collaborate|waiter|table)\/([A-Za-z0-9_-]+)(?:\/(order|draft))?$/,
         );
         if (pub) {
           const [, kind, key, action] = pub;
+          if (['table','waiter'].includes(kind)) {
+            limit(`dining:${req.socket.remoteAddress}`,300);
+            if(!action && req.method==='GET') return send(store.diningPublicView(key,kind));
+            if(mutation && action==='order') return send(store.diningPublicOrder(key,kind,body),201);
+            fail('notFound',404);
+          }
           limit(`public:${req.socket.remoteAddress}`, 180);
           if (!action && req.method === "GET") {
             if (kind === "collaborate") {
@@ -157,6 +163,7 @@ export function createApp({
         }
         const u = store.authenticate(session),
           b = u.business;
+        if (mutation && path.startsWith("/api/restaurant/")) return send(store.diningChange(b,u,path,body));
         if (path === "/api/workspace" && req.method === "GET")
           return send(store.workspace(u));
         if (mutation && path === "/api/settings") {
@@ -254,6 +261,8 @@ export function createApp({
           return send({ ok: true });
         }
         if (mutation && path === "/api/orders/status") {
+          const existing=store.get('SELECT data FROM orders WHERE business=? AND id=?',b,body.id);
+          if(existing && JSON.parse(existing.data).tabId) return send(store.diningChange(b,u,path,body));
           if (!["accepted", "cancelled"].includes(body.status))
             fail("invalidStatus");
           const order = store.get(
@@ -277,7 +286,7 @@ export function createApp({
       if (!["GET", "HEAD"].includes(req.method)) fail("notFound", 404);
       const file =
         path === "/" ||
-        /^\/(store|mobile|collaborate|join)(\/[^/]+)?$/.test(path)
+        /^\/(store|mobile|collaborate|waiter|table|join)(\/[^/]+)?$/.test(path)
           ? "index.html"
           : decodeURIComponent(path.slice(1));
       const target = resolve(root, "public", file);

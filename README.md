@@ -58,6 +58,16 @@ npm run test:browser
 - Usuários de caixa com acesso próprio. Alterações de marca, produtos, equipe e links ficam com o administrador.
 - Aplicativo web instalável (PWA) em navegadores compatíveis. Operação financeira depende de conexão com o servidor; nenhuma venda offline é indicada como salva.
 
+## Restaurante, mesas e garçom
+
+Em **Gestão da empresa → Configurações**, escolha Restaurante, Bar ou Café e ative **mesas, comandas e garçom**. Defina a quantidade de mesas, a cor da moldura dos QR Codes e se o cliente pode pedir ou apenas consultar o cardápio. A logo é a mesma das configurações da empresa.
+
+No PDV, o botão com ícone de mesa abre o mapa de mesas e comandas. A aba **Garçom** gera um link/QR vinculado ao caixa aberto: no celular ou tablet, o atendente escolhe a mesa, monta o pedido e envia à comanda. A aba **QR das mesas** permite compartilhar e imprimir cada QR ou todos eles, com logo e moldura. Os links impressos permanecem os mesmos no próximo atendimento.
+
+Os pedidos enviados pelo garçom e pelo cliente acumulam na mesa correta. **Receber pagamento**, dentro da comanda, finaliza seus itens e libera a mesa. Preços de pedidos já enviados são preservados; novos pedidos usam os preços atuais. Comandas abertas precisam ser pagas ou ter seus pedidos cancelados antes do fechamento do caixa. O garçom não recebe acesso à gestão nem ao recebimento de pagamentos.
+
+Para editar um produto diretamente no PDV, o administrador pode usar o **botão direito** ou os **três pontos** do card, escolhendo nome, preço, código ou o cadastro completo.
+
 ## Fluxos
 
 **Balcão:** entrar → PDV → abrir caixa ou escolher Agora não → adicionar itens → escolher cliente/desconto → receber → comprovante.
