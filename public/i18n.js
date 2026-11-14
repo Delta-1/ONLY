@@ -1,4 +1,12 @@
 const entries = {
+  daySales: ["Vendas do dia", "Ventas del día", "Today's sales"],
+  editSale: ["Editar venda", "Editar venta", "Edit sale"],
+  editSaleHint: ["Confira os itens e o pagamento. Ao salvar, o estoque e o caixa serão ajustados e a versão anterior ficará no histórico.", "Revisa los artículos y el pago. Al guardar se ajustan las existencias y la caja y se conserva la versión anterior.", "Review items and payment. Saving adjusts stock and the register and keeps the previous version in history."],
+  editReason: ["Motivo da alteração", "Motivo del cambio", "Reason for change"],
+  addProduct: ["Adicionar produto", "Añadir producto", "Add product"],
+  backToPos: ["Voltar ao PDV", "Volver al punto de venta", "Back to POS"],
+  saleUpdated: ["Venda atualizada.", "Venta actualizada.", "Sale updated."],
+  editingUnavailable: ["Edição temporariamente indisponível.", "Edición temporalmente no disponible.", "Editing is temporarily unavailable."],
   serverConnectionNeeded: ["O acesso ainda não está ativado. Falta conectar o serviço de dados para entrar e cadastrar a empresa.", "El acceso aún no está activado. Falta conectar el servicio de datos para entrar y registrar la empresa.", "Access is not activated yet. Connect the data service to sign in and register your business."],
   productImage: ["Imagem do produto", "Imagen del producto", "Product image"],
   retryHint: [
@@ -427,6 +435,7 @@ const entries = {
   ],
 };
 const errors = {
+  saleCancelled: ["Esta venda já foi cancelada.", "Esta venta ya fue cancelada.", "This sale is already cancelled."],
   closingPinLength: ["Use uma senha de 4 a 8 números.", "Usa una clave de 4 a 8 números.", "Use a PIN with 4 to 8 digits."],
   invalidClosingPin: ["Senha do caixa incorreta. Confira e tente novamente.", "Clave de caja incorrecta. Revisa e inténtalo de nuevo.", "Incorrect closing PIN. Please try again."],
   closingPinMismatch: ["As senhas do caixa não conferem.", "Las claves de caja no coinciden.", "The closing PINs do not match."],
