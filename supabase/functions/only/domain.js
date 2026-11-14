@@ -185,7 +185,7 @@ export function diningPublicOrder(s,key,kind,b,keyHash){
 export function diningMutation(s,u,path,b,context={}){
  diningRequired(s);
  if(path==='/api/restaurant/orders'){
-  const r=openRegister(s,b.registerId,u);s.restaurant.serviceRegisterId=r.id;
+  const r=openRegister(s,b.registerId,u);if(b.currency!==r.currency)fail('registerCurrency');s.restaurant.serviceRegisterId=r.id;
   return addDiningOrder(s,b.tableId,r.id,b,u.name);
  }
  if(path==='/api/restaurant/links'){

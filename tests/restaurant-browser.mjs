@@ -32,7 +32,7 @@ try{
  await p.locator('[name="imageData"]').evaluate((el,value)=>{el.value=value;},logo);
  await submit('settings');await p.getByRole('heading',{name:'Configurações',exact:true}).waitFor();await click('pos');
  await p.locator('.topbar [data-action="registers"]').click();await click('register');await p.locator('dialog [name="name"]').fill('Caixa Restaurante');await p.locator('dialog [name="opening"]').fill('0');await submit('open-register');await p.locator('dialog').waitFor({state:'hidden'});
- await click('tables');assert.equal(await p.locator('.tables-grid .table-square').count(),3);
+ await click('tables');await p.locator('.tables-grid .table-square').first().waitFor();assert.equal(await p.locator('.tables-grid .table-square').count(),3);
  const tables=(await snapshot()).restaurant.tables;
  await p.screenshot({path:join(artifacts,'restaurante-mesas.png'),animations:'disabled'});
  await p.locator('[data-section="waiter"]').click();await click('create-waiter');await p.locator('.share-copy > a').waitFor();const waiterUrl=await p.locator('.share-copy > a').getAttribute('href');

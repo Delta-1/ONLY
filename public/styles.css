@@ -3487,3 +3487,5 @@ dialog[open] {
   .table-qr-poster small { font-size: 7pt; }
   .table-qr-logo { width: 35mm; height: 15mm; }
 }
+
+.menu-only .product-card:hover { transform: none; border-color: var(--line); }
