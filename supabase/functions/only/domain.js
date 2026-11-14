@@ -1,6 +1,6 @@
 import {currencies,cents,cashTenderSummary} from './money.js';
 export const defaults={name:'Minha empresa',currency:'BRL',language:'pt',logo:'',theme:'dark',layout:'clean',showCatalog:true,soundEffects:true,saleAnimations:true,menuPosition:'top',phone:'',address:'',taxId:'',storeEnabled:false,storeDescription:'',minOrder:0};
-export const publicBusiness=({closePinHash,...business})=>business;
+export const publicBusiness=({closePinHash,restaurantState,...business})=>business;
 export const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export const text=(v,max=200)=>String(v??'').trim().slice(0,max);
 export const id=()=>crypto.randomUUID();
@@ -23,11 +23,11 @@ function writeProduct(s,p){if(s.products.some(x=>x.code===p.code&&x.id!==p.id))f
 export function openRegister(s,key,u){const r=s.registers.find(r=>r.id===key&&!r.closed);if(!r)fail('openRegisterRequired');if(u&&u.role!=='owner'&&r.user!==u.id)fail('forbidden',403);return r;}
 export function expected(s,r){return r.opening+s.sales.filter(v=>v.registerId===r.id&&v.status!=='cancelled'&&v.method==='cash').reduce((n,v)=>n+v.paid,0)+s.receipts.filter(v=>v.registerId===r.id&&v.method==='cash').reduce((n,v)=>n+v.amount,0)+s.movements.filter(v=>v.registerId===r.id).reduce((n,v)=>n+(v.kind==='in'?v.amount:-v.amount),0);}
 export function priceItems(s,b,publicMode=false){currency(b.currency);if(!Array.isArray(b.items)||!b.items.length||b.items.length>200)fail('emptyCart');const combined=new Map();for(const i of b.items){if(!i||typeof i.id!=='string')fail('invalidQuantity');const q=qty(i.quantity);if(!q)fail('invalidQuantity');combined.set(i.id,(combined.get(i.id)||0)+q);}
- return [...combined].map(([key,q])=>{const p=product(s,key);if(!p.active||(publicMode&&!p.published))fail('unavailableProduct');const price=!publicMode&&b.wholesale?p.wholesale[b.currency]??p.prices[b.currency]:p.prices[b.currency];if(price==null)fail('priceUnavailable');if(p.trackStock&&q>p.stock)fail('insufficientStock');const total=Math.round(price*q);if(!Number.isSafeInteger(total))fail('invalidAmount');return {id:key,code:p.code,name:p.name,quantity:qty(q),price,total};});
+ return [...combined].map(([key,q])=>{const p=product(s,key);if(!p.active||(publicMode&&!p.published))fail('unavailableProduct');const price=!publicMode&&b.wholesale?p.wholesale[b.currency]??p.prices[b.currency]:p.prices[b.currency];if(price==null)fail('priceUnavailable');if(p.trackStock&&q>p.stock-reservedQuantity(s,key))fail('insufficientStock');const total=Math.round(price*q);if(!Number.isSafeInteger(total))fail('invalidAmount');return {id:key,code:p.code,name:p.name,quantity:qty(q),price,total};});
 }
 export function balance(s,client,c){return s.sales.filter(v=>v.client?.id===client&&v.currency===c&&v.status!=='cancelled').reduce((n,v)=>n+v.due,0)-s.receipts.filter(v=>v.client===client&&v.currency===c).reduce((n,v)=>n+v.amount,0);}
 export function workspace(s,u,users=[]){const result=structuredClone(s);delete result.links;result.business=publicBusiness(result.business);result.user=u;result.users=u.role==='owner'?users:[];result.links=u.role==='owner'?s.links.map(({code,kind,expires,active})=>({code,kind,expires,active})):[];result.drafts=u.role==='owner'?result.drafts:[];
- result.capabilities={saleEditing:true};
+ result.capabilities={saleEditing:true,restaurant:true};result.restaurant=diningWorkspace(s,u);
  result.products.sort((a,b)=>a.code.localeCompare(b.code));result.clients=result.clients.map(c=>({...c,balances:Object.fromEntries(currencies.map(code=>[code,balance(s,c.id,code)]))}));result.registers=result.registers.map(r=>({...r,expected:r.closed?r.expected:expected(s,r)})).sort((a,b)=>b.opened.localeCompare(a.opened));
  const credits=new Map();for(const r of s.receipts){const k=`${r.client}:${r.currency}`;credits.set(k,(credits.get(k)||0)+r.amount);}
  for(const sale of [...result.sales].sort((a,b)=>a.date.localeCompare(b.date))){const k=`${sale.client?.id}:${sale.currency}`,credit=credits.get(k)||0,applied=sale.status==='cancelled'?0:Math.min(sale.due,credit);sale.outstanding=sale.status==='cancelled'?0:sale.due-applied;credits.set(k,credit-applied);}
@@ -43,18 +43,19 @@ export function publicMutation(s,key,kind,action,b,keyHash){publicCatalog(s,key,
 }
 export function mutate(s,u,path,b,context={}){
  if(path==='/api/sales/edit')return reviseSale(s,u,b);
+ if(path.startsWith('/api/restaurant/'))return diningMutation(s,u,path,b,context);
  if(['/api/settings','/api/products','/api/links','/api/links/revoke','/api/drafts/approve','/api/drafts/reject','/api/sales/cancel'].includes(path))owner(u);
- if(path==='/api/settings'){const old=s.business,next={...old,name:text(b.name),currency:currency(b.currency),language:['pt','es','en'].includes(b.language)?b.language:'pt',theme:b.theme==='light'?'light':'dark',layout:b.layout==='classic'?'classic':'clean',menuPosition:b.menuPosition==='side'?'side':'top',showCatalog:b.showCatalog!==false,soundEffects:(b.soundEffects??old.soundEffects)!==false,saleAnimations:(b.saleAnimations??old.saleAnimations)!==false,...(context.closePinHash?{closePinHash:context.closePinHash}:{}),logo:image(b.logo),phone:text(b.phone,50),address:text(b.address),taxId:text(b.taxId,50),storeEnabled:Boolean(b.storeEnabled),storeDescription:text(b.storeDescription,1000),minOrder:amount(b.minOrder||0)};if(!next.name)fail('required');s.business=next;return publicBusiness(next);}
- if(path==='/api/products'){if(b.id)product(s,b.id);return writeProduct(s,normalizeProduct(b,b.id));}
+ if(path==='/api/settings'){const old=s.business,next={...old,name:text(b.name),currency:currency(b.currency),language:['pt','es','en'].includes(b.language)?b.language:'pt',theme:b.theme==='light'?'light':'dark',layout:b.layout==='classic'?'classic':'clean',menuPosition:b.menuPosition==='side'?'side':'top',showCatalog:b.showCatalog!==false,soundEffects:(b.soundEffects??old.soundEffects)!==false,saleAnimations:(b.saleAnimations??old.saleAnimations)!==false,...(context.closePinHash?{closePinHash:context.closePinHash}:{}),logo:image(b.logo),phone:text(b.phone,50),address:text(b.address),taxId:text(b.taxId,50),storeEnabled:Boolean(b.storeEnabled),storeDescription:text(b.storeDescription,1000),minOrder:amount(b.minOrder||0)};if(!next.name)fail('required');const configuration=configureDining(s,b);s.business={...next,...configuration};return publicBusiness(s.business);}
+ if(path==='/api/products'){if(b.id)product(s,b.id);const p=normalizeProduct(b,b.id);if(p.trackStock&&p.stock<reservedQuantity(s,p.id))fail('insufficientStock');return writeProduct(s,p);}
  if(path==='/api/clients'){const name=text(b.name);if(!name)fail('required');if(b.id&&!s.clients.some(c=>c.id===b.id))fail('notFound',404);const c={id:b.id||id(),name,phone:text(b.phone,60),address:text(b.address),taxId:text(b.taxId,60)},at=s.clients.findIndex(c2=>c2.id===c.id);if(at<0)s.clients.push(c);else s.clients[at]=c;return c;}
  if(path==='/api/registers/open'){const name=text(b.name,80);if(!name)fail('required');if(s.registers.some(r=>r.name===name&&!r.closed))fail('registerAlreadyOpen',409);const r={id:id(),name,business:s.business.id,user:u.id,opened:now(),closed:null,currency:currency(b.currency),opening:amount(b.opening||0)};s.registers.push(r);return r;}
- if(path==='/api/registers/close'){const r=openRegister(s,b.id,u);if(!context.closePinVerified)fail('invalidClosingPin',403);r.expected=expected(s,r);r.counted=amount(b.counted);r.closed=now();return {...r,difference:r.counted-r.expected};}
+ if(path==='/api/registers/close'){assertNoOpenTabs(s,b.id);const r=openRegister(s,b.id,u);if(!context.closePinVerified)fail('invalidClosingPin',403);r.expected=expected(s,r);r.counted=amount(b.counted);r.closed=now();return {...r,difference:r.counted-r.expected};}
  if(path==='/api/movements'){const r=openRegister(s,b.registerId,u),value=amount(b.amount),note=text(b.note);if(!value||!note||!['in','out'].includes(b.kind))fail('required');const m={id:id(),date:now(),registerId:r.id,kind:b.kind,amount:value,note};s.movements.push(m);return m;}
  if(path==='/api/sales'){
   const requestId=text(b.requestId,100);if(requestId.length<12)fail('requestIdRequired');const previous=s.sales.find(v=>v.requestId===requestId);if(previous)return previous;
-  const r=openRegister(s,b.registerId,u);if(r.currency!==b.currency)fail('registerCurrency');const items=priceItems(s,b),subtotal=items.reduce((n,i)=>n+i.total,0),discount=amount(b.discount||0);if(discount>subtotal)fail('invalidDiscount');const total=subtotal-discount,method=b.method;if(!['cash','pix','qr','card','transfer','credit'].includes(method))fail('invalidPayment');const client=b.clientId?s.clients.find(c=>c.id===b.clientId):null;if(b.clientId&&!client)fail('notFound',404);const tender=cashTenderSummary(total/100,method==='credit'?0:b.received??total/100);if(!tender.valid)fail('invalidAmount');if(tender.remaining&&!client)fail('clientRequired');if(tender.remaining&&!b.allowPartial&&method!=='credit')fail('insufficientPayment');if(method!=='cash'&&tender.change)fail('nonCashOverpayment');const order=b.orderId?s.orders.find(o=>o.id===b.orderId):null;if(b.orderId&&(!order||!['new','accepted'].includes(order.status)))fail('orderAlreadyProcessed',409);
+  const r=openRegister(s,b.registerId,u);if(r.currency!==b.currency)fail('registerCurrency');const dining=b.tabId?prepareTabSale(s,u,b):null,items=dining?dining.items:priceItems(s,b),subtotal=items.reduce((n,i)=>n+i.total,0),discount=amount(b.discount||0);if(discount>subtotal)fail('invalidDiscount');const total=subtotal-discount,method=b.method;if(!['cash','pix','qr','card','transfer','credit'].includes(method))fail('invalidPayment');const client=b.clientId?s.clients.find(c=>c.id===b.clientId):null;if(b.clientId&&!client)fail('notFound',404);const tender=cashTenderSummary(total/100,method==='credit'?0:b.received??total/100);if(!tender.valid)fail('invalidAmount');if(tender.remaining&&!client)fail('clientRequired');if(tender.remaining&&!b.allowPartial&&method!=='credit')fail('insufficientPayment');if(method!=='cash'&&tender.change)fail('nonCashOverpayment');const order=b.orderId?s.orders.find(o=>o.id===b.orderId):null;if(b.orderId&&(!order||order.tabId||!['new','accepted'].includes(order.status)))fail('orderAlreadyProcessed',409);
   const saleId=id(),date=now(),paid=Math.min(cents(tender.received),total),sale={id:saleId,number:`V-${date.slice(0,10).replaceAll('-','')}-${saleId.slice(0,6).toUpperCase()}`,date,items,subtotal,discount,total,currency:b.currency,method,received:cents(tender.received),change:cents(tender.change),paid,due:total-paid,client:client?structuredClone(client):null,registerId:r.id,registerName:r.name,seller:u.name,status:'completed',notes:text(b.notes,1000),orderId:order?.id||null,requestId};
-  for(const i of items){const p=product(s,i.id);if(p.trackStock)p.stock=qty(p.stock-i.quantity);}s.sales.push(sale);if(order)order.status='completed';return sale;
+  for(const i of items){const p=product(s,i.id);if(p.trackStock)p.stock=qty(p.stock-i.quantity);}s.sales.push(sale);if(dining)finishTabSale(s,dining.tab,sale);if(order)order.status='completed';return sale;
  }
  if(path==='/api/sales/cancel'){const sale=s.sales.find(v=>v.id===b.id);if(!sale)fail('notFound',404);if(sale.status==='cancelled')return sale;if(!s.registers.some(r=>r.id===sale.registerId&&!r.closed))fail('registerClosed');if(s.receipts.some(r=>r.client===sale.client?.id&&r.currency===sale.currency))fail('saleHasReceipts');for(const i of sale.items){const p=product(s,i.id);if(p.trackStock)p.stock=qty(p.stock+i.quantity);}sale.status='cancelled';return sale;}
  if(path==='/api/receipts'){const c=currency(b.currency),value=amount(b.amount),client=s.clients.find(c=>c.id===b.clientId);if(!client)fail('notFound',404);if(!value||value>balance(s,client.id,c))fail('invalidAmount');if(!['cash','pix','qr','card','transfer'].includes(b.method))fail('invalidPayment');const r=openRegister(s,b.registerId,u);if(r.currency!==c)fail('registerCurrency');const entry={id:id(),date:now(),client:client.id,currency:c,amount:value,method:b.method,registerId:r.id};s.receipts.push(entry);return {id:entry.id};}
@@ -62,7 +63,7 @@ export function mutate(s,u,path,b,context={}){
  if(path==='/api/links/revoke'){const l=s.links.find(l=>l.code===b.code);if(l)l.active=0;return {ok:true};}
  if(path==='/api/drafts/approve'){const p=s.drafts.find(d=>d.id===b.id);if(!p)fail('notFound',404);writeProduct(s,p);s.drafts=s.drafts.filter(d=>d.id!==b.id);return p;}
  if(path==='/api/drafts/reject'){s.drafts=s.drafts.filter(d=>d.id!==b.id);return {ok:true};}
- if(path==='/api/orders/status'){if(!['accepted','cancelled'].includes(b.status))fail('invalidStatus');const o=s.orders.find(o=>o.id===b.id);if(!o)fail('notFound',404);if(['completed','cancelled'].includes(o.status))fail('orderAlreadyProcessed',409);o.status=b.status;return {ok:true};}
+ if(path==='/api/orders/status'){if(!['accepted','cancelled'].includes(b.status))fail('invalidStatus');const o=s.orders.find(o=>o.id===b.id);if(!o)fail('notFound',404);if(['completed','cancelled'].includes(o.status))fail('orderAlreadyProcessed',409);if(o.tabId){const tab=s.restaurant?.tabs.find(t=>t.id===o.tabId&&t.status==='open');if(!tab)fail('tabClosed',409);tab.revision++;if(b.status==='cancelled'&&!s.orders.some(other=>other.id!==o.id&&other.tabId===tab.id&&['new','accepted'].includes(other.status)))tab.status='cancelled';}o.status=b.status;return {ok:true};}
  fail('notFound',404);
 }
 
@@ -108,7 +109,7 @@ export function reviseSale(s,u,b){
   if(p.trackStock){
    const old=sale.items.filter(i=>i.id===key).reduce((n,i)=>n+i.quantity,0),next=items.filter(i=>i.id===key).reduce((n,i)=>n+i.quantity,0);
    const stock=Math.round((p.stock+old-next)*1000)/1000;
-   if(stock<0)fail('insufficientStock');changes.push([p,qty(stock)]);
+   if(stock<reservedQuantity(s,key))fail('insufficientStock');changes.push([p,qty(stock)]);
   }
  }
  const {history=[],outstanding,...previous}=structuredClone(sale),at=now(),paid=Math.min(cents(tender.received),total);
@@ -118,3 +119,96 @@ export function reviseSale(s,u,b){
  delete sale.outstanding;
  return sale;
 }
+
+export const diningEnabled = b => b.restaurantEnabled === true && ['restaurant','bar','cafe'].includes(b.commerceType);
+export function configureDining(s,b){
+ const old=s.business,next={commerceType:['retail','restaurant','bar','cafe'].includes(b.commerceType)?b.commerceType:old.commerceType||'retail',restaurantEnabled:(b.restaurantEnabled??old.restaurantEnabled)===true,tableCount:Number(b.tableCount??old.tableCount??12),tableCustomerMode:(b.tableCustomerMode??old.tableCustomerMode)==='order'?'order':'menu',tableQrColor:b.tableQrColor??old.tableQrColor??'#7c3aed'};
+ if(!Number.isInteger(next.tableCount)||next.tableCount<1||next.tableCount>200)fail('invalidTables');
+ if(!/^#[0-9a-f]{6}$/i.test(next.tableQrColor))fail('invalidColor');
+ const active=(s.restaurant?.tabs||[]).filter(t=>t.status==='open');
+ if(active.length&&(!diningEnabled(next)||active.some(t=>Number(t.tableCode)>next.tableCount)))fail('openTabs');
+ if(!diningEnabled(next))next.restaurantEnabled=false;
+ Object.assign(s.business,next);
+ if(diningEnabled(next)){
+  s.restaurant??={tables:[],tabs:[],serviceRegisterId:''};
+  for(let n=1;n<=next.tableCount;n++)if(!s.restaurant.tables.some(t=>t.code===String(n).padStart(2,'0')))s.restaurant.tables.push({id:id(),code:String(n).padStart(2,'0')});
+ }
+ return next;
+}
+export const diningTables=s=>(s.restaurant?.tables||[]).filter(t=>Number(t.code)<=s.business.tableCount);
+export function reservedQuantity(s,key,exceptTab=''){
+ const open=new Set((s.restaurant?.tabs||[]).filter(t=>t.status==='open'&&t.id!==exceptTab).map(t=>t.id));
+ return s.orders.filter(o=>open.has(o.tabId)&&['new','accepted'].includes(o.status)).reduce((n,o)=>n+o.items.filter(i=>i.id===key).reduce((m,i)=>m+i.quantity,0),0);
+}
+function diningRequired(s){if(!diningEnabled(s.business))fail('restaurantDisabled',403);}
+function diningTable(s,key){const table=diningTables(s).find(t=>t.id===key);if(!table)fail('notFound',404);return table;}
+function openTab(s,tableId){return (s.restaurant?.tabs||[]).find(t=>t.tableId===tableId&&t.status==='open');}
+export function tabSummary(s,tab){
+ if(!tab)return null;
+ const orders=s.orders.filter(o=>o.tabId===tab.id&&['new','accepted'].includes(o.status));
+ const items=orders.flatMap(o=>o.items.map(i=>({...i,orderId:o.id})));
+ return {id:tab.id,tableId:tab.tableId,tableCode:tab.tableCode,registerId:tab.registerId,currency:tab.currency,revision:tab.revision,status:tab.status,opened:tab.opened,items,total:items.reduce((n,i)=>n+i.total,0),orders:orders.map(o=>({id:o.id,number:o.number,items:o.items,total:o.total,notes:o.notes,waiter:o.waiter,date:o.date,status:o.status}))};
+}
+function tableViews(s){return diningTables(s).map(t=>({...t,tab:tabSummary(s,openTab(s,t.id))}));}
+export function diningWorkspace(s,u){
+ if(!diningEnabled(s.business))return null;
+ return {tables:tableViews(s),links:s.links.filter(l=>['table','waiter'].includes(l.kind)&&l.active&&l.expires>Date.now()&&(l.kind==='table'||s.registers.some(r=>r.id===l.registerId&&!r.closed&&(u.role==='owner'||r.user===u.id)))).map(({raw,kind,tableId,registerId,code,expires})=>({token:raw,kind,tableId,registerId,code,expires}))};
+}
+export function diningPublic(s,key,kind,keyHash){
+ diningRequired(s);
+ const link=resolveLink(s,key,kind,keyHash),boundTab=kind==='table'?openTab(s,link.tableId):null,register=s.registers.find(r=>r.id===(kind==='waiter'?link.registerId:boundTab?.registerId||s.restaurant?.serviceRegisterId)&&!r.closed);
+ if(kind==='waiter'&&!register)fail('registerClosed');
+ const table=kind==='table'?diningTable(s,link.tableId):null;
+ const {name,logo,language,theme,tableCustomerMode}=s.business,c=register?.currency||s.business.currency;
+ return {business:{name,logo,language,theme,currency:c,restaurantEnabled:true,commerceType:s.business.commerceType,tableCustomerMode},restaurant:{tables:kind==='waiter'?tableViews(s):[{...table,tab:(()=>{const tab=tabSummary(s,openTab(s,table.id));if(!tab)return null;const {orders,...safe}=tab;return safe;})()}],canOrder:!!register&&(kind==='waiter'||tableCustomerMode==='order'),registerId:register?.id||'',kind},products:s.products.filter(p=>p.active&&(kind==='waiter'||p.published)).map(({id,name,code,category,description,image,prices,stock,trackStock,unit})=>({id,name,code,category,description,image,prices,stock:Math.max(0,stock-reservedQuantity(s,id)),trackStock,unit}))};
+}
+function addDiningOrder(s,tableId,registerId,b,actor,guest=false){
+ diningRequired(s);const table=diningTable(s,tableId),r=openRegister(s,registerId);
+ const requestId=text(b.requestId,100);if(requestId.length<12)fail('requestIdRequired');
+ const previous=s.orders.find(o=>o.requestId===requestId);
+ if(previous){if(previous.tableId!==table.id||previous.registerId!==r.id)fail('concurrentUpdate',409);return {id:previous.id,number:previous.number,tabId:previous.tabId};}
+ let tab=openTab(s,table.id);if(tab&&tab.registerId!==r.id)fail('tableOtherRegister',409);
+ const items=priceItems(s,{items:b.items,currency:r.currency,wholesale:false},guest),total=items.reduce((n,i)=>n+i.total,0);
+ if(!tab){tab={id:id(),tableId:table.id,tableCode:table.code,registerId:r.id,currency:r.currency,revision:0,status:'open',opened:now()};s.restaurant.tabs.push(tab);}
+ const keyId=id(),order={id:keyId,number:`M${table.code}-${keyId.slice(0,6).toUpperCase()}`,date:now(),items,total,currency:r.currency,customer:`Mesa ${table.code}`,phone:'',table:table.code,tableId:table.id,tabId:tab.id,registerId:r.id,notes:text(b.notes,1000),waiter:text(actor,100),channel:guest?'table':'waiter',status:'new',requestId};
+ s.orders.push(order);tab.revision++;return {id:order.id,number:order.number,tabId:tab.id};
+}
+export function diningPublicOrder(s,key,kind,b,keyHash){
+ const view=diningPublic(s,key,kind,keyHash),link=resolveLink(s,key,kind,keyHash);
+ if(!view.restaurant.canOrder)fail('menuOnly',403);
+ if(b.currency!==view.business.currency)fail('registerCurrency');
+ const tableId=kind==='table'?link.tableId:b.tableId;
+ if(kind==='table'&&b.tableId&&b.tableId!==tableId)fail('forbidden',403);
+ if(kind==='waiter'&&!text(b.waiter,100))fail('required');
+ return addDiningOrder(s,tableId,view.restaurant.registerId,b,kind==='waiter'?b.waiter:'Cliente',kind==='table');
+}
+export function diningMutation(s,u,path,b,context={}){
+ diningRequired(s);
+ if(path==='/api/restaurant/orders'){
+  const r=openRegister(s,b.registerId,u);s.restaurant.serviceRegisterId=r.id;
+  return addDiningOrder(s,b.tableId,r.id,b,u.name);
+ }
+ if(path==='/api/restaurant/links'){
+  if(!['table','waiter'].includes(b.kind))fail('invalidLink');
+  const r=openRegister(s,b.registerId,u);s.restaurant.serviceRegisterId=r.id;
+  if(b.kind==='table')diningTable(s,b.tableId);
+  const existing=s.links.find(l=>l.kind===b.kind&&l.active&&l.expires>Date.now()&&(b.kind==='table'?l.tableId===b.tableId:l.registerId===r.id));
+  if(existing&&!b.rotate)return {token:existing.raw,kind:existing.kind,tableId:existing.tableId,registerId:existing.registerId};
+  if(existing)existing.active=0;
+  if(!context.linkHash||!context.linkToken||!context.linkCode)fail('invalidLink');
+  const link={token:context.linkHash,raw:context.linkToken,code:context.linkCode,kind:b.kind,active:1,expires:b.kind==='table'?253402300799000:Date.now()+7*86400000,...(b.kind==='table'?{tableId:b.tableId}:{registerId:r.id})};
+  s.links.push(link);return {token:link.raw,kind:link.kind,tableId:link.tableId,registerId:link.registerId};
+ }
+ fail('notFound',404);
+}
+export function prepareTabSale(s,u,b){
+ diningRequired(s);const tab=s.restaurant.tabs.find(t=>t.id===b.tabId&&t.status==='open');
+ if(!tab)fail('tabClosed',409);
+ const r=openRegister(s,tab.registerId,u);if(b.registerId!==r.id||b.currency!==tab.currency)fail('registerCurrency');
+ if(b.tabRevision!==tab.revision)fail('concurrentUpdate',409);
+ const summary=tabSummary(s,tab);if(!summary.items.length)fail('emptyCart');
+ for(const key of new Set(summary.items.map(i=>i.id))){const p=product(s,key),q=summary.items.filter(i=>i.id===key).reduce((n,i)=>n+i.quantity,0);if(p.trackStock&&q>p.stock-reservedQuantity(s,key,tab.id))fail('insufficientStock');}
+ return {tab,items:summary.items.map(({orderId,...item})=>item)};
+}
+export function finishTabSale(s,tab,sale){tab.status='closed';tab.closed=now();tab.saleId=sale.id;tab.revision++;for(const o of s.orders)if(o.tabId===tab.id&&['new','accepted'].includes(o.status))o.status='completed';sale.tabId=tab.id;sale.table=tab.tableCode;}
+export function assertNoOpenTabs(s,registerId){if((s.restaurant?.tabs||[]).some(t=>t.status==='open'&&t.registerId===registerId))fail('openTabs');}

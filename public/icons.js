@@ -1,4 +1,5 @@
 const icons = {
+  table: '<rect x="5" y="7" width="14" height="10" rx="2"/><path d="M8 3h8M8 21h8M2 9v6M22 9v6"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
   cart: '<circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.5 11h11l2-8H6"/>',
   users:

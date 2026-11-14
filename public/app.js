@@ -49,7 +49,7 @@ try {
   );
 } catch {}
 const path = (cloud && location.hash.startsWith("#/") ? location.hash.slice(1) : location.pathname).split("/").filter(Boolean);
-if (["store", "mobile", "collaborate"].includes(path[0]))
+if (["store", "mobile", "collaborate", "waiter", "table"].includes(path[0]))
   [publicMode, publicKey] = path;
 const money = (n, c = posCurrency) =>
   new Intl.NumberFormat({ pt: "pt-BR", es: "es-BO", en: "en-US" }[lang()], {
@@ -155,7 +155,7 @@ function theme() {
   document.title = `${settings().name || "ONLY"} · ONLY`;
 }
 function brand() {
-  return `<div class="brand">${settings().logo ? `<img src="${esc(settings().logo)}" alt="${esc(settings().name)}">` : `<span class="wordmark">only<i>®</i></span>`}<div class="brand-divider"></div><div class="company"><strong>${esc(settings().name || "ONLY")}</strong><small>${publicMode ? t(publicMode === "store" ? "catalog" : "mobile") : mode === "pos" ? t("pos") : t("erp")}</small></div></div>`;
+  return `<div class="brand">${settings().logo ? `<img src="${esc(settings().logo)}" alt="${esc(settings().name)}">` : `<span class="wordmark">only<i>®</i></span>`}<div class="brand-divider"></div><div class="company"><strong>${esc(settings().name || "ONLY")}</strong><small>${publicMode ? t(publicMode === "store" ? "catalog" : publicMode === "waiter" ? "waiter" : publicMode === "table" ? "menuLabel" : "mobile") : mode === "pos" ? t("pos") : mode === "tables" ? t("tables") : t("erp")}</small></div></div>`;
 }
 const languagePicker = () =>
   `<select data-language aria-label="${t("language")}" class="language-select">${opts(
@@ -170,7 +170,7 @@ const posCurrencyPicker = () =>
   `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}" title="${t("currency")}">${opts(currencies.map(c => [c, c]), posCurrency)}</select></div>`;
 function header() {
   const reg = currentRegister();
-  return `<header class="topbar">${brand()}<div class="top-actions"><span class="connection ${navigator.onLine ? "" : "offline"}"><i></i>${t(navigator.onLine ? "online" : "offline")}</span>${!publicMode && mode === "pos" ? posCurrencyPicker() : ""}${languagePicker()}${publicMode ? "" : `${btn("registers", t("cash"), "wallet", reg ? "soft" : "", `aria-label="${t("cash")}" title="${esc(reg ? `${t("cash")} · ${reg.name}` : t("cash"))}"`)} ${mode === "erp" ? btn("pos", t("pos"), "cart", "primary") : ""}${btn("menu", t("menu"), "menu", "menu-button")}`}</div></header>`;
+  return `<header class="topbar">${brand()}<div class="top-actions"><span class="connection ${navigator.onLine ? "" : "offline"}"><i></i>${t(navigator.onLine ? "online" : "offline")}</span>${!publicMode && mode === "pos" ? posCurrencyPicker() : ""}${languagePicker()}${publicMode === "waiter" ? btn("waiter-tables",t("tables"),"table","",`aria-label="${t("tables")}"`) : ""}${publicMode ? "" : `${btn("registers", t("cash"), "wallet", reg ? "soft" : "", `aria-label="${t("cash")}" title="${esc(reg ? `${t("cash")} · ${reg.name}` : t("cash"))}"`)} ${mode === "erp" ? btn("pos", t("pos"), "cart", "primary") : ""}${diningIsEnabled() ? btn("tables",t("tables"),"table","restaurant-switch",`aria-label="${t("tables")}"`) : ""}${btn("menu", t("menu"), "menu", "menu-button")}`}</div></header>`;
 }
 function auth() {
   app.innerHTML = `<div class="auth-shell"><aside class="auth-visual"><span class="wordmark">only<i>®</i></span><div><small>PDV + ERP</small><h1>${esc(t("loginPitch")).replace("\n", "<br>")}</h1><p>${t("loginHint")}</p><div class="auth-pills"><span>${svg("cart")} ${t("pos")}</span><span>${svg("store")} ${t("catalog")}</span><span>${svg("chart")} ${t("reports")}</span></div></div><footer>onlysystem · 2026</footer><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></aside><section class="auth-panel"><div class="auth-top">${languagePicker()}${btn("join", t("join"), "smartphone")}</div><div class="auth-form"><span class="eyebrow">ONLY SYSTEM</span><h2>${t(authTab === "login" ? "loginTitle" : "signup")}</h2><p>${t(authTab === "login" ? "loginHint" : "signupHint")}</p><div class="segmented">${btn("auth-login", t("login"), "", "", `aria-pressed="${authTab === "login"}"`)}${btn("auth-signup", t("signup"), "", "", `aria-pressed="${authTab === "signup"}"`)}</div><form data-form="${authTab}">${authTab === "signup" ? field(t("name"), "name", "", "text", 'required autocomplete="name"') + field(t("businessName"), "businessName", "", "text", 'required autocomplete="organization"') : ""}${field(t("email"), "email", "", "email", 'required autocomplete="username"')}${field(t("password"), "password", "", "password", `required minlength="8" maxlength="128" autocomplete="${authTab === "signup" ? "new-password" : "current-password"}"`)}<p class="form-error" data-inline-error hidden></p><button class="btn primary wide" type="submit">${t(authTab === "login" ? "login" : "signup")}${svg("chevron")}</button></form></div><small class="auth-foot">ONLY · PDV & ERP</small></section></div>`;
@@ -182,6 +182,7 @@ function auth() {
 
 }
 function render() {
+  closeProductContext();
   if (!data) return auth();
   theme();
   if (publicMode === "collaborate") {
@@ -190,10 +191,11 @@ function render() {
   }
   app.innerHTML =
     header() +
+    diningBanner() +
     (!navigator.onLine
       ? `<div class="offline-banner">${t("offline")}</div>`
       : "") +
-    (publicMode || mode === "pos" ? pos() : erp());
+    (publicMode === "waiter" && !selectedTableId ? waiterTablesPage() : publicMode || mode === "pos" ? pos() : mode === "tables" ? diningPage() : erp());
 }
 function catalogProducts() {
   return data.products.filter(
@@ -220,7 +222,7 @@ function cards() {
     ? products
         .map(
           (p, index) =>
-            `<button class="product-card" data-add="${esc(p.id)}" ${p.trackStock && p.stock <= 0 ? "disabled" : ""}><span class="product-visual hue-${index % 4}">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : svg("box")}<span class="product-code">${esc(p.code)}</span>${p.trackStock ? `<small class="stock-pill ${p.stock <= p.minStock ? "warning" : ""}">${num(p.stock)} ${esc(p.unit || "un")}</small>` : ""}</span><span class="product-info"><small>${esc(p.category || t("general"))}</small><strong>${esc(p.name)}</strong><span><b>${money(productPrice(p))}</b><i>${svg("plus")}</i></span></span></button>`,
+            `<article class="product-tile" data-product-id="${esc(p.id)}"><${diningReadOnly() ? "article" : "button"} class="product-card" ${diningReadOnly() ? "" : `data-add="${esc(p.id)}"`}  ${p.trackStock && p.stock <= 0 ? "disabled" : ""}><span class="product-visual hue-${index % 4}">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : svg("box")}<span class="product-code">${esc(p.code)}</span>${p.trackStock ? `<small class="stock-pill ${p.stock <= p.minStock ? "warning" : ""}">${num(p.stock)} ${esc(p.unit || "un")}</small>` : ""}</span><span class="product-info"><small>${esc(p.category || t("general"))}</small><strong>${esc(p.name)}</strong><span><b>${money(productPrice(p))}</b><i>${svg("plus")}</i></span></span></${diningReadOnly() ? "article" : "button"}>${!publicMode && isOwner() ? btn("product-options",t("productOptions"),"dots","product-more",`data-id="${esc(p.id)}" aria-label="${esc(t("productOptions") + " · " + p.name)}" aria-haspopup="menu"`) : ""}</article>`,
         )
         .join("")
     : empty(
@@ -255,7 +257,7 @@ function pos() {
     reg = currentRegister(),
     sum = subtotal();
   const show = publicMode || settings().showCatalog !== false;
-  return `<div class="pos-shell ${!publicMode ? "operator-pos" : ""} ${show ? "" : "no-catalog"}"><section class="catalog-area">${publicMode ? `<div class="section-title"><div><span class="eyebrow">${esc(settings().name)}</span><h1>${t(publicMode === "store" ? "catalog" : "mobile")}<span class="live-dot"></span></h1><p>${esc(settings().storeDescription || t("storeHint"))}</p></div></div>` : ""}<div class="catalog-tools"><div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div>${!publicMode && isOwner() ? btn("new-product", t("newProduct"), "plus", "catalog-add", `aria-label="${t("newProduct")}" title="${t("newProduct")}"`) : ""}</div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div></div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
+  return `<div class="pos-shell ${diningReadOnly() ? "menu-only" : ""} ${!publicMode ? "operator-pos" : ""} ${show ? "" : "no-catalog"}"><section class="catalog-area">${publicMode ? `<div class="section-title"><div><span class="eyebrow">${esc(settings().name)}</span><h1>${t(publicMode === "store" ? "catalog" : "mobile")}<span class="live-dot"></span></h1><p>${esc(settings().storeDescription || t("storeHint"))}</p></div></div>` : ""}<div class="catalog-tools"><div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div>${!publicMode && isOwner() ? btn("new-product", t("newProduct"), "plus", "catalog-add", `aria-label="${t("newProduct")}" title="${t("newProduct")}"`) : ""}</div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode || (selectedTableId && diningIsEnabled()) ? "sendToTab" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div></div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
 }
 const posState = { clientId: "", discount: "0", notes: "" };
 Object.assign(pos, posState);
@@ -468,7 +470,7 @@ function ordersPage() {
       btn("refresh", t("refresh"), "transfer") +
         btn("mobile", t("mobile"), "smartphone"),
     ) +
-    `<div class="order-grid">${data.orders.length ? data.orders.map((o) => `<article class="order-card"><header><strong>${esc(o.number)}</strong><span class="badge ${o.status === "new" ? "purple" : o.status === "completed" ? "success" : ""}">${t(o.status)}</span></header><h3>${esc(o.customer)}</h3><p>${esc(o.phone)} ${o.table ? " · " + esc(o.table) : ""}</p><small>${date(o.date)} · ${t(o.channel === "store" ? "catalog" : "mobile")}</small><ul>${o.items.map((i) => `<li><span>${num(i.quantity)} × ${esc(i.name)}</span><b>${money(i.total, o.currency)}</b></li>`).join("")}</ul>${o.address ? `<p>${svg("store")} ${esc(o.address)}</p>` : ""}${o.notes ? `<p>${esc(o.notes)}</p>` : ""}<div class="total-row"><span>${t("total")}</span><strong>${money(o.total, o.currency)}</strong></div>${["new", "accepted"].includes(o.status) ? `<footer>${o.status === "new" ? btn("accept-order", t("accept"), "check", "", `data-id="${o.id}"`) : ""}${btn("import-order", t("importOrder"), "cart", "primary", `data-id="${o.id}"`)}${btn("cancel-order", t("cancelOrder"), "close", "text-button", `data-id="${o.id}"`)}</footer>` : ""}</article>`).join("") : empty(t("noData"), t("storeHint"), "receipt")}</div>`
+    `<div class="order-grid">${data.orders.length ? data.orders.map((o) => `<article class="order-card"><header><strong>${esc(o.number)}</strong><span class="badge ${o.status === "new" ? "purple" : o.status === "completed" ? "success" : ""}">${t(o.status)}</span></header><h3>${esc(o.customer)}</h3><p>${esc(o.phone)} ${o.table ? " · " + esc(o.table) : ""}</p><small>${date(o.date)} · ${t(o.channel === "store" ? "catalog" : "mobile")}</small><ul>${o.items.map((i) => `<li><span>${num(i.quantity)} × ${esc(i.name)}</span><b>${money(i.total, o.currency)}</b></li>`).join("")}</ul>${o.address ? `<p>${svg("store")} ${esc(o.address)}</p>` : ""}${o.notes ? `<p>${esc(o.notes)}</p>` : ""}<div class="total-row"><span>${t("total")}</span><strong>${money(o.total, o.currency)}</strong></div>${["new", "accepted"].includes(o.status) ? `<footer>${o.status === "new" ? btn("accept-order", t("accept"), "check", "", `data-id="${o.id}"`) : ""}${o.tabId ? btn("table-detail",t("viewTab"),"table","primary",`data-id="${o.tableId}"`) : btn("import-order", t("importOrder"), "cart", "primary", `data-id="${o.id}"`)}${btn("cancel-order", t("cancelOrder"), "close", "text-button", `data-id="${o.id}"`)}</footer>` : ""}</article>`).join("") : empty(t("noData"), t("storeHint"), "receipt")}</div>`
   );
 }
 function cashPage() {
@@ -575,7 +577,7 @@ function imageField(value, label = "logo") {
 }
 function settingsFields(section = "all") {
   const b = settings();
-  return `${section === "all" ? `<h3>${t("business")}</h3><div class="form-grid">${brandFields(b)}</div>` : ""}<h3>${t("currency")} & ${t("language")}</h3><div class="form-grid">${select(t("defaultCurrency"), "currency", currencyOptions(b.currency))}${select(
+  return `${section === "all" ? `<h3>${t("business")}</h3><div class="form-grid">${brandFields(b)}</div>${diningSettingsFields(b)}` : ""}<h3>${t("currency")} & ${t("language")}</h3><div class="form-grid">${select(t("defaultCurrency"), "currency", currencyOptions(b.currency))}${select(
     t("language"),
     "language",
     opts(
@@ -702,6 +704,7 @@ function updateSaleEditTotal() {
 }
 function menu() {
   const entries = [
+    ...(diningIsEnabled() ? [["tables","tables","table"],["waiter-links","waiter","smartphone"]] : []),
     ["day-sales", "daySales", "receipt"],
     ["new-product", "newProduct", "plus"],
     ["customize", "customization", "settings"],
@@ -783,6 +786,7 @@ function clientForm(id) {
   );
 }
 function checkout() {
+  if (!publicMode && selectedTableId && diningIsEnabled()) return diningOrderModal();
   if (pendingForBusiness()) return retrySale();
   if (!cart.length) return;
   const r = currentRegister();
@@ -898,6 +902,7 @@ function settingsBody(form) {
     ...f,
     logo: f.imageData ?? old.logo,
     showCatalog: form.elements.showCatalog?.checked ?? old.showCatalog,
+    restaurantEnabled: form.elements.restaurantEnabled?.checked ?? old.restaurantEnabled ?? false,
     soundEffects: form.elements.soundEffects?.checked ?? old.soundEffects ?? true,
     saleAnimations: form.elements.saleAnimations?.checked ?? old.saleAnimations ?? true,
   };
@@ -949,6 +954,7 @@ async function linksModal(kind) {
   );
 }
 function orderCheckout() {
+  if (diningPublicMode()) return diningOrderModal();
   if (!cart.length) return;
   formModal(
     t("orderDetails"),
@@ -1430,6 +1436,7 @@ document.addEventListener("click", (e) => {
   }
 });
 document.addEventListener("input", (e) => {
+  if(e.target.closest("#tabPaymentForm"))updateTabTender();
   if (e.target.closest('form[data-form="edit-sale"]')) updateSaleEditTotal();
   if (e.target.id === "search") {
     query = e.target.value;
@@ -1453,6 +1460,8 @@ document.addEventListener("input", (e) => {
 document.addEventListener("change", async (e) => {
   try {
     const el = e.target;
+    if(el.name==='commerceType'){const region=document.querySelector('[data-food-options]');if(region)region.hidden=!['restaurant','bar','cafe'].includes(el.value);if(el.value==='retail'&&el.form?.elements.restaurantEnabled)el.form.elements.restaurantEnabled.checked=false;}
+    if(el.closest('#tabPaymentForm'))updateTabTender();
     if (el.closest('form[data-form="edit-sale"]')) {
       if (el.name === 'method' && el.value === 'credit') el.form.elements.received.value = '0';
       updateSaleEditTotal();
@@ -1546,6 +1555,8 @@ document.addEventListener("submit", async (e) => {
       dialog.close();
       render();
     }
+    if (kind === "dining-order") await submitDiningOrder(form,fields);
+    if (kind === "tab-sale") await submitTabSale(form,fields);
     if (kind === "product") {
       await api("/api/products", {
         ...serializeProduct(form),
@@ -1734,6 +1745,7 @@ async function boot() {
   try {
     if (publicMode) {
       data = await api(publicPath());
+      if (publicMode === "table") selectedTableId = data.restaurant.tables[0].id;
       posCurrency = data.business.currency;
       setLanguage(data.business.language);
       render();
@@ -1759,13 +1771,14 @@ setInterval(async () => {
     if (publicMode) {
       const next = await api(publicPath());
       data.products = next.products;
+      if (diningPublicMode()) { data.restaurant = next.restaurant; data.business = next.business; if(!dialog.open && !["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName)) render(); }
     } else {
       const before = lastOrderCount;
       await load(true);
       if (lastOrderCount > before) toast(`${t("new")} · ${t("orders")}`);
       if (
-        mode === "erp" &&
-        ["orders", "cash", "products"].includes(view) &&
+        ["erp","tables"].includes(mode) &&
+        (mode === "tables" || ["orders", "cash", "products"].includes(view)) &&
         !dialog.open &&
         !["INPUT", "SELECT", "TEXTAREA"].includes(
           document.activeElement?.tagName,
@@ -1784,4 +1797,124 @@ setInterval(async () => {
 if (!staticSite && !cloud && "serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 if(cloud) window.addEventListener("hashchange",()=>location.reload());
+
+let selectedTableId = '', diningSection = 'tables';
+const diningDrafts = new Map();
+const diningPublicMode = () => ['waiter','table'].includes(publicMode);
+const diningIsEnabled = () => !publicMode && data?.capabilities?.restaurant && settings().restaurantEnabled && ['restaurant','bar','cafe'].includes(settings().commerceType);
+const diningReadOnly = () => publicMode === 'table' && !data?.restaurant?.canOrder;
+const diningTables = () => data?.restaurant?.tables || [];
+const selectedDiningTable = () => diningTables().find(t => t.id === selectedTableId);
+function diningSettingsFields(b) {
+  const food = ['restaurant','bar','cafe'].includes(b.commerceType);
+  return `<section class="dining-settings"><h3>${t('commerceType')}</h3><div class="form-grid">${select(t('commerceType'),'commerceType',opts(['retail','restaurant','bar','cafe'].map(k=>[k,t(k)]),b.commerceType||'retail'))}</div><div data-food-options ${food?'':'hidden'}>${check('restaurantEnabled',t('enableRestaurant'),b.restaurantEnabled===true)}<div class="form-grid">${field(t('tableCount'),'tableCount',b.tableCount||12,'number','min="1" max="200" step="1" required')}${select(t('customerTableAccess'),'tableCustomerMode',opts([['menu',t('menuOnly')],['order',t('customerCanOrder')]],b.tableCustomerMode||'menu'))}${field(t('qrFrameColor'),'tableQrColor',b.tableQrColor||'#7c3aed','color')}</div><p class="hint">${t('restaurantHint')}</p></div></section>`;
+}
+function diningBanner() {
+  if (publicMode === 'waiter' && !selectedTableId) return '';
+  const table = selectedDiningTable();
+  if (!table || (!diningPublicMode() && !diningIsEnabled())) return '';
+  return `<div class="dining-banner">${svg('table')}<strong>${t('tableLabel')} ${esc(table.code)}</strong>${table.tab?`<span>${t('tabTotal')}: ${money(table.tab.total,table.tab.currency)}</span>`:''}${diningReadOnly()?`<span>${t(settings().tableCustomerMode==='menu'?'menuOnlyHint':'serviceUnavailable')}</span>`:btn('view-current-tab',t('viewTab'),'receipt','small')}${!publicMode?btn('counter-mode',t('counter'),'cart','small'):''}</div>`;
+}
+function tableSquares(isWaiter=false) {
+  return `<div class="tables-grid">${diningTables().map(table=>`<button class="table-square ${table.tab?'occupied':''}" data-action="${isWaiter?'serve-table':'table-detail'}" data-id="${table.id}" ${isWaiter&&table.tab&&table.tab.registerId!==data.restaurant.registerId?'disabled':''}>${svg('table')}<strong>${esc(table.code)}</strong><span>${t(table.tab?'occupied':'freeTable')}</span>${table.tab?`<b>${money(table.tab.total,table.tab.currency)}</b><small>${table.tab.items.length} ${t('items')}</small>`:''}</button>`).join('')}</div>`;
+}
+function waiterTablesPage() {
+  return `<section class="dining-page"><div class="page-title"><div><h1>${t('chooseTable')}</h1><p>${t('waiterSelectHint')}</p></div></div>${tableSquares(true)}</section>`;
+}
+function diningPage() {
+  if(!diningIsEnabled())return '';
+  const register=currentRegister(), links=data.restaurant?.links||[];
+  const waiter=links.find(l=>l.kind==='waiter'&&l.registerId===register?.id);
+  const tools=`<div class="segmented dining-tabs">${['tables','waiter','tableQr'].map(key=>btn('dining-section',t(key),key==='tables'?'table':key==='waiter'?'smartphone':'qr',diningSection===key?'active':'',`data-section="${key}" aria-pressed="${diningSection===key}"`)).join('')}</div>`;
+  const heading=pageTitle(t('tables'),register?`${esc(register.name)} · ${register.currency}`:t('openRegisterFirst'),btn('pos',t('backToPos'),'cart'));
+  if(diningSection==='waiter')return `<section class="dining-page">${heading}${tools}<div class="panel"><h2>${t('waiter')}</h2><p class="hint">${t('waiterLinkHint')}</p>${waiter?linkBlock(`/waiter/${waiter.token}`,t('waiter')):''}${btn('create-waiter',t(waiter?'renewWaiter':'createWaiter'),'qr','primary',register?'':'disabled')}</div></section>`;
+  if(diningSection==='tableQr')return `<section class="dining-page">${heading}${tools}<div class="page-title"><p>${t('tableQrHint')}</p>${btn('print-all-tables',t('printAllTables'),'receipt','primary',register?'':'disabled')}</div><div class="tables-grid">${diningTables().map(table=>`<article class="table-square qr-table-card">${svg('qr')}<strong>${t('tableLabel')} ${esc(table.code)}</strong>${btn('table-qr',t('tableQr'),'qr','',`data-id="${table.id}" ${register?'':'disabled'}`)}</article>`).join('')}</div></section>`;
+  return `<section class="dining-page">${heading}${tools}${tableSquares()}</section>`;
+}
+function saveDiningDraft() { diningDrafts.set(selectedTableId||'counter',{cart:structuredClone(cart),pos:structuredClone(pos),currency:posCurrency,orderId,wholesale}); }
+function selectDiningTable(id) {
+  const table=diningTables().find(t=>t.id===id);
+  if(id&&!table)return;
+  if(!publicMode&&table?.tab){const r=data.registers.find(r=>r.id===table.tab.registerId);if(!r||!canUseRegister(r))return toast(errorText('tableOtherRegister'),true);selectedRegister=r.id;}
+  saveDiningDraft();selectedTableId=id;
+  const draft=diningDrafts.get(id||'counter');cart=draft?structuredClone(draft.cart):[];Object.assign(pos,draft?.pos||{clientId:'',discount:'0',notes:''});orderId=draft?.orderId||null;wholesale=draft?.wholesale||false;
+  posCurrency=publicMode?data.business.currency:table?.tab?.currency||currentRegister()?.currency||settings().currency;
+  mobileView='products';mode='pos';dialog.close();render();window.scrollTo(0,0);
+}
+async function showTable(id) {
+  if(!publicMode)await load(true);
+  const table=diningTables().find(t=>t.id===id);if(!table)return;
+  const tab=table.tab;
+  modal(`${t('tableLabel')} ${table.code}`,`${tab?`<div class="payment-total"><small>${t('tabTotal')} · ${tab.currency}</small><strong>${money(tab.total,tab.currency)}</strong></div>${tableMarkup(tab)}`:empty(t('freeTable'),t('emptyTableHint'),'table')}`,`${!publicMode?btn('serve-table',t('serveTable'),'plus','primary',`data-id="${id}"`):''}${!publicMode&&tab?.items.length?btn('pay-table',t('checkout'),'card','primary',`data-id="${id}"`):''}${!publicMode?btn('table-qr',t('tableQr'),'qr','',`data-id="${id}"`):''}${btn('close-dialog',t('close'))}`,true);
+}
+function tableMarkup(tab) {
+  return table([t('products'),t('quantity'),t('total')],tab.items.map(i=>[esc(i.name),num(i.quantity),money(i.total,tab.currency)])) + (tab.orders||[]).map(o=>`<p class="hint">${esc(o.number)} · ${esc(o.waiter)} · ${date(o.date)}${o.notes?`<br>${esc(o.notes)}`:''}</p>`).join('');
+}
+function diningOrderModal() {
+  const table=selectedDiningTable();if(!table||!cart.length||diningReadOnly())return;
+  if(!publicMode&&!currentRegister())return registerModal();
+  formModal(`${t('sendToTab')} · ${t('tableLabel')} ${table.code}`,'dining-order',`${publicMode==='waiter'?field(t('waiterName'),'waiter',localStorage.getItem(`only.waiter.${publicKey}`)||'','text','required maxlength="100"'):''}${field(t('notes'),'notes',pos.notes||'')}<input type="hidden" name="requestId" value="${diningOrderModal.requestId ||= crypto.randomUUID()}"><div class="payment-total"><small>${t('total')} · ${posCurrency}</small><strong>${money(subtotal())}</strong></div><p class="hint">${t('appendTabHint')}</p>`);
+  $('.modal-footer [type="submit"]').textContent=t('sendToTab');
+}
+async function submitDiningOrder(form,fields) {
+  const table=selectedDiningTable();if(!table)throw Error('notFound');
+  const payload={...fields,tableId:table.id,registerId:currentRegister()?.id,currency:posCurrency,items:cart.map(i=>({...i}))};
+  const result=await api(diningPublicMode()?`${publicPath()}/order`:'/api/restaurant/orders',payload);
+  if(publicMode==='waiter')localStorage.setItem(`only.waiter.${publicKey}`,fields.waiter);
+  cart=[];pos.notes='';pos.discount='0';diningOrderModal.requestId=null;saveDiningDraft();
+  if(publicMode)data=await api(publicPath());else await load(true);
+  dialog.close();render();toast(`${t('sentToTab')} · ${result.number}`);
+}
+async function payDiningTable(id) {
+  await load(true);const table=diningTables().find(t=>t.id===id),tab=table?.tab;if(!tab?.items.length)return;
+  const reg=data.registers.find(r=>r.id===tab.registerId);if(!reg||!canUseRegister(reg))return toast(errorText('tableOtherRegister'),true);
+  modal(`${t('checkout')} · ${t('tableLabel')} ${table.code}`,`${tableMarkup(tab)}<div class="payment-total"><small>${t('total')} · ${tab.currency}</small><strong>${money(tab.total,tab.currency)}</strong></div><form id="tabPaymentForm" data-form="tab-sale"><input type="hidden" name="requestId" value="${crypto.randomUUID()}"><input type="hidden" name="tabId" value="${tab.id}"><input type="hidden" name="tabRevision" value="${tab.revision}"><input type="hidden" name="registerId" value="${tab.registerId}"><input type="hidden" name="currency" value="${tab.currency}"><div class="form-grid">${select(t('customer'),'clientId',opts([['',t('finalCustomer')],...data.clients.map(c=>[c.id,c.name])],''))}${select(t('checkout'),'method',opts(['cash','pix','qr','card','transfer','credit'].map(m=>[m,t(m==='cash'?'cashMethod':m)]),'cash'))}${field(`${t('discount')} (${tab.currency})`,'discount','0','number','min="0" step="0.01" required')}${field(`${t('received')} (${tab.currency})`,'received',(tab.total/100).toFixed(2),'text','inputmode="decimal" required')}</div>${check('allowPartial',t('partial'))}<div data-tab-tender class="tender-summary" aria-live="polite"></div></form>`,btn('close-dialog',t('back'))+`<button type="submit" form="tabPaymentForm" class="btn primary">${svg('card')}${t('confirmPayment')}</button>`,true);
+  $('#tabPaymentForm').dataset.total=tab.total;updateTabTender();
+}
+function updateTabTender(){const f=$('#tabPaymentForm');if(!f)return;if(f.elements.method.value==='credit')f.elements.received.value='0';const total=Math.max(0,Number(f.dataset.total)-cents(Number(f.elements.discount.value))),tender=cashTenderSummary(total/100,f.elements.received.value);$('[data-tab-tender]',f).innerHTML=`<span>${t(tender.remaining?'remaining':'change')}</span><strong>${tender.valid?money(cents(tender.remaining||tender.change),f.elements.currency.value):'—'}</strong>`;}
+async function submitTabSale(form,fields){
+  const sale=await api('/api/sales',{...fields,tabRevision:Number(fields.tabRevision),allowPartial:form.elements.allowPartial.checked});
+  await load(true);dialog.close();mode='tables';render();receipt(sale);feedback.sale(sale.id,t('saleDone'));
+}
+async function diningLink(kind,tableId='',rotate=false){const r=currentRegister();if(!r)throw Error('openRegisterRequired');const result=await api('/api/restaurant/links',{kind,tableId,registerId:r.id,rotate});await load(true);return result;}
+async function showTableQr(id){
+  const table=diningTables().find(t=>t.id===id);if(!table)return;
+  const link=await diningLink('table',id);
+  modal(`${t('tableQr')} · ${t('tableLabel')} ${table.code}`,linkBlock(`/table/${link.token}`,`${t('tableLabel')} ${table.code}`),btn('print-table-qr',t('print'),'receipt','primary',`data-id="${id}"`)+btn('close-dialog',t('close')),true);
+}
+async function printTableQrs(ids){
+  const cards=[];
+  for(const id of ids){const table=diningTables().find(t=>t.id===id),link=await diningLink('table',id),relative=`/table/${link.token}`;cards.push(`<section class="table-qr-poster" style="--qr-frame:${esc(settings().tableQrColor||'#7c3aed')}">${settings().logo?`<img class="table-qr-logo" src="${esc(settings().logo)}" alt="${esc(settings().name)}">`:''}<h2>${esc(settings().name)}</h2><strong>${t('tableLabel')} ${esc(table.code)}</strong><img class="table-qr-code" src="${esc(qrUrl(relative))}" alt="QR Code" width="230" height="230"><h3>${t(settings().tableCustomerMode==='order'?'scanToOrder':'scanMenu')}</h3><p>${t('tableQrCaption')}</p><small>${esc(cloud?routeUrl(relative):location.origin+relative)}</small></section>`);}
+  modal(t('printTableQr'),`<article id="printArea" class="table-qr-print">${cards.join('')}</article>`,btn('print',t('print'),'receipt','primary')+btn('close-dialog',t('close')),true);
+  await Promise.all([...dialog.querySelectorAll('img')].map(img=>img.decode().catch(()=>{throw Error('qrUnavailable');})));
+}
+function closeProductContext(){document.getElementById('productContext')?.remove();}
+function openProductContext(id,x,y){
+  if(publicMode||!isOwner())return;
+  const p=data.products.find(p=>p.id===id);if(!p)return;closeProductContext();
+  const menu=document.createElement('div');menu.id='productContext';menu.className='product-context';menu.setAttribute('role','menu');menu.setAttribute('aria-label',`${t('productOptions')} · ${p.name}`);
+  menu.innerHTML=`<strong>${esc(p.name)}</strong>${[['',t('editProduct')],['name',t('changeName')],[`price_${posCurrency}`,t('changePrice')],['code',t('changeCode')]].map(([field,label])=>btn('context-edit',label,'edit','',`role="menuitem" data-id="${p.id}" data-field="${field}"`)).join('')}`;
+  document.body.append(menu);const r=menu.getBoundingClientRect();menu.style.left=`${Math.max(8,Math.min(x,innerWidth-r.width-8))}px`;menu.style.top=`${Math.max(8,Math.min(y,innerHeight-r.height-8))}px`;menu.querySelector('button')?.focus();
+}
+Object.assign(actions,{
+  'tables':async()=>{await load(true);dialog.close();mode='tables';diningSection='tables';render();},
+  'waiter-links':async()=>{await load(true);dialog.close();mode='tables';diningSection='waiter';render();},
+  'dining-section':async el=>{await load(true);diningSection=el.dataset.section;render();},
+  'table-detail':el=>showTable(el.dataset.id),
+  'serve-table':el=>selectDiningTable(el.dataset.id),
+  'waiter-tables':()=>{saveDiningDraft();selectedTableId='';dialog.close();render();window.scrollTo(0,0);},
+  'counter-mode':()=>selectDiningTable(''),
+  'view-current-tab':()=>showTable(selectedTableId),
+  'pay-table':el=>payDiningTable(el.dataset.id),
+  'create-waiter':async()=>{await diningLink('waiter','',true);diningSection='waiter';render();},
+  'table-qr':el=>showTableQr(el.dataset.id),
+  'print-table-qr':el=>printTableQrs([el.dataset.id]),
+  'print-all-tables':()=>printTableQrs(diningTables().map(t=>t.id)),
+  'product-options':el=>{const r=el.getBoundingClientRect();openProductContext(el.dataset.id,r.right,r.bottom);},
+  'context-edit':el=>{const id=el.dataset.id,field=el.dataset.field;closeProductContext();productForm(id);if(field)dialog.querySelector(`[name="${field}"]`)?.focus();}
+});
+document.addEventListener('contextmenu',e=>{const tile=e.target.closest('.product-tile');if(tile&&!publicMode&&isOwner()){e.preventDefault();openProductContext(tile.dataset.productId,e.clientX,e.clientY);}});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#productContext, [data-action="product-options"]'))closeProductContext();});
+document.addEventListener('keydown',e=>{const menu=document.getElementById('productContext');if(!menu)return;if(e.key==='Escape'){e.preventDefault();closeProductContext();}if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const buttons=[...menu.querySelectorAll('button')],at=buttons.indexOf(document.activeElement);buttons[(at+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length].focus();}});
+
 boot();

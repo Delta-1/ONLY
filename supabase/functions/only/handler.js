@@ -1,4 +1,4 @@
-import {defaults,initialState,mutate,publicCatalog,publicMutation,resolveLink,workspace,fail,text,id,hex,owner,openRegister} from './domain.js';
+import {defaults,initialState,mutate,publicCatalog,publicMutation,resolveLink,workspace,fail,text,id,hex,owner,openRegister,diningPublic,diningPublicOrder} from './domain.js';
 const enc=new TextEncoder();
 export async function digest(value){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(value))),v=>v.toString(16).padStart(2,'0')).join('');}
 const checkPassword=p=>{if(typeof p!=='string'||p.length<8||p.length>128)fail('passwordLength');return p;};
@@ -26,7 +26,7 @@ export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY
    const ip=req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||req.headers.get('cf-connecting-ip')||'unknown';
    let b={};if(post){if(req.headers.get('x-only-request')!=='1'||!req.headers.get('content-type')?.startsWith('application/json'))fail('forbidden',403);const input=await req.text();if(enc.encode(input).length>1800000)fail('bodyTooLarge',413);try{b=JSON.parse(input);}catch{fail('invalidBody');}if(!b||typeof b!=='object'||Array.isArray(b))fail('invalidBody');}
    if(path==='/api/qr'&&req.method==='GET'){
-    await limit(`qr:${ip}`,300);const relative=url.searchParams.get('path')||'';if(!/^\/(store|mobile|collaborate)\/[A-Za-z0-9_-]+$/.test(relative))fail('invalidLink');
+    await limit(`qr:${ip}`,300);const relative=url.searchParams.get('path')||'';if(!/^\/(store|mobile|collaborate|waiter|table)\/[A-Za-z0-9_-]+$/.test(relative))fail('invalidLink');
     return new Response(await qr(`${publicBase}#${relative}`),{headers:{...headers,'Content-Type':'image/svg+xml'}});
    }
    if(post&&['/api/signup','/api/login'].includes(path)){
@@ -45,17 +45,17 @@ export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY
    if(post&&path==='/api/join'){
     await limit(`join:${ip}`,50);const code=text(b.code).toUpperCase(),row=await findWorkspace({mobile_code:code});resolveLink(row.body,code,'mobile','');return send({path:`/mobile/${code}`});
    }
-   const pub=path.match(/^\/api\/public\/(store|mobile|collaborate)\/([A-Za-z0-9_-]+)(?:\/(order|draft))?$/);
+   const pub=path.match(/^\/api\/public\/(store|mobile|collaborate|waiter|table)\/([A-Za-z0-9_-]+)(?:\/(order|draft))?$/);
    if(pub){await limit(`public:${ip}`,600);const [,kind,key,action]=pub,keyHash=await digest(key),params=kind==='store'?{code:key}:{token_hash:keyHash,mobile_code:kind==='mobile'?key:undefined};
-    if(!action&&req.method==='GET'){const row=await findWorkspace(params);return send(publicCatalog(row.body,key,kind,keyHash));}
-    if(post&&action)return send(await changeWorkspace(params,s=>publicMutation(s,key,kind,action,b,keyHash)),201);fail('notFound',404);
+    if(!action&&req.method==='GET'){const row=await findWorkspace(params);return send(['waiter','table'].includes(kind)?diningPublic(row.body,key,kind,keyHash):publicCatalog(row.body,key,kind,keyHash));}
+    if(post&&action)return send(await changeWorkspace(params,s=>['waiter','table'].includes(kind)?(action==='order'?diningPublicOrder(s,key,kind,b,keyHash):fail('notFound',404)):publicMutation(s,key,kind,action,b,keyHash)),201);fail('notFound',404);
    }
    if(!sessionHash)fail('loginRequired',401);const account=await rpc('account_session',{hash:sessionHash});if(!account)fail('loginRequired',401);const user=safeUser(account),params={id:user.business};
    if(path==='/api/workspace'&&req.method==='GET'){const row=await findWorkspace(params),users=user.role==='owner'?await rpc('list_users',{business:user.business}):[];return send(workspace(row.body,user,users));}
    if(!post)fail('notFound',404);
    if(path==='/api/users'){owner(user);const email=checkedEmail(b.email),name=text(b.name);if(!name)fail('required');const added=await rpc('add_user',{actor:user.id,business:user.business,id:id(),email,name,password_hash:await passwordHash(b.password)});return send(safeUser(added));}
    if(path==='/api/password'){const saved=await rpc('account_email',{email:user.email});if(!await passwordMatches(b.currentPassword,saved.password_hash))fail('invalidLogin',401);return send(await rpc('change_password',{id:user.id,password_hash:await passwordHash(b.password),keep_hash:sessionHash}));}
-   const linkToken=path==='/api/links'?hex(24):'',context=linkToken?{linkToken,linkHash:await digest(linkToken),linkCode:hex(6).toUpperCase()}:{};
+   const linkToken=['/api/links','/api/restaurant/links'].includes(path)?hex(24):'',context=linkToken?{linkToken,linkHash:await digest(linkToken),linkCode:hex(6).toUpperCase()}:{};
    if(path==='/api/settings'&&b.closePin){owner(user);context.closePinHash=await closingPinHash(b.closePin);}
    if(path==='/api/registers/close')await limit(`closing-pin:${user.business}:${user.id}:${Math.floor(Date.now()/60000)}`,30);
    return send(await changeWorkspace(params,async s=>{if(path==='/api/registers/close'){openRegister(s,b.id,user);if(!await closingPinMatches(b.pin,s.business.closePinHash))fail('invalidClosingPin',403);context.closePinVerified=true;}return mutate(s,user,path,b,context);}),path==='/api/sales'?201:200);
