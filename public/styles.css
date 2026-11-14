@@ -3477,7 +3477,7 @@ dialog[open] {
   .table-qr-print { display: block; }
 }
 @media print {
-  .table-qr-print { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12mm; }
+  #printArea.table-qr-print { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12mm; }
   .table-qr-poster { border-width: 3mm; border-radius: 5mm; padding: 5mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .table-qr-code { width: 45mm; height: 45mm; }
   .table-qr-poster h2 { font-size: 14pt; }

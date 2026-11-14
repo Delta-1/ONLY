@@ -834,7 +834,7 @@ function receipt(s) {
   feedback.clear();
   lastReceipt = s;
   const b = settings();
-  const content = `<article class="receipt" id="printArea">${b.logo ? `<img class="receipt-logo" src="${esc(b.logo)}" alt="">` : ""}<h2>${esc(b.name)}</h2><p>${esc(b.taxId)}<br>${esc(b.address)}<br>${esc(b.phone)}</p><hr><h3>${t("receipt")}</h3><strong>${esc(s.number)}</strong><p>${date(s.date)}<br>${t("seller")}: ${esc(s.seller)}</p>${table(
+  const content = `<article class="receipt" id="printArea">${b.logo ? `<img class="receipt-logo" src="${esc(b.logo)}" alt="">` : ""}<h2>${esc(b.name)}</h2><p>${esc(b.taxId)}<br>${esc(b.address)}<br>${esc(b.phone)}</p><hr><h3>${t("receipt")}</h3><strong>${esc(s.number)}</strong>${s.table?`<p>${t("tableLabel")} ${esc(s.table)}</p>`:""}<p>${date(s.date)}<br>${t("seller")}: ${esc(s.seller)}</p>${table(
     [t("products"), t("quantity"), t("total")],
     s.items.map((i) => [
       esc(i.name),
@@ -1838,7 +1838,7 @@ function selectDiningTable(id) {
   if(!publicMode&&table?.tab){const r=data.registers.find(r=>r.id===table.tab.registerId);if(!r||!canUseRegister(r))return toast(errorText('tableOtherRegister'),true);selectedRegister=r.id;}
   saveDiningDraft();selectedTableId=id;
   const draft=diningDrafts.get(id||'counter');cart=draft?structuredClone(draft.cart):[];Object.assign(pos,draft?.pos||{clientId:'',discount:'0',notes:''});orderId=draft?.orderId||null;wholesale=draft?.wholesale||false;
-  posCurrency=publicMode?data.business.currency:table?.tab?.currency||currentRegister()?.currency||settings().currency;
+  posCurrency=publicMode?data.business.currency:table?(table.tab?.currency||currentRegister()?.currency||settings().currency):(draft?.currency||currentRegister()?.currency||settings().currency);
   mobileView='products';mode='pos';dialog.close();render();window.scrollTo(0,0);
 }
 async function showTable(id) {
