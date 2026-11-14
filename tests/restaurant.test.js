@@ -66,7 +66,7 @@ for(const backend of ['cloud','sqlite'])test(`${backend}: restaurant tabs, scope
   assert.equal(read().restaurant.tables.every(t=>!t.tab),true);
   call('/api/registers/close',{id:reg.id,counted:110});assert.throws(()=>view('waiter',waiter.token),/registerClosed/);
   assert.equal(view('table',qr.token).restaurant.canOrder,false,'printed menu survives register closure');
-  const evening=call('/api/registers/open',{name:'Evening',currency:'BRL',opening:0});call('/api/restaurant/links',{kind:'waiter',registerId:evening.id});
+  const evening=call('/api/registers/open',{name:'Evening',currency:'BRL',opening:0});assert.equal(view('table',qr.token).restaurant.canOrder,true,'opening a register reactivates printed table QRs without regenerating waiter access');call('/api/restaurant/links',{kind:'waiter',registerId:evening.id});
   assert.equal(view('table',qr.token).restaurant.canOrder,true,'same printed QR works in the next service');
   if(db){const reopened=new Store(dir);try{assert.equal(reopened.workspace(user).restaurant.tables.length,2);assert.equal(reopened.diningPublicView(qr.token,'table').restaurant.canOrder,true);}finally{reopened.db.close();}}
   call('/api/settings',{...settings,restaurantEnabled:false});assert.equal(read().restaurant,null);assert.throws(()=>view('table',qr.token),/restaurantDisabled/);
