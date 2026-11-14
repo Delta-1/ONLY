@@ -156,7 +156,7 @@ export function diningWorkspace(s,u){
 }
 export function diningPublic(s,key,kind,keyHash){
  diningRequired(s);
- const link=resolveLink(s,key,kind,keyHash),boundTab=kind==='table'?openTab(s,link.tableId):null,register=s.registers.find(r=>r.id===(kind==='waiter'?link.registerId:boundTab?.registerId||s.restaurant?.serviceRegisterId)&&!r.closed);
+ const link=resolveLink(s,key,kind,keyHash),boundTab=kind==='table'?openTab(s,link.tableId):null,register=s.registers.find(r=>r.id===(kind==='waiter'?link.registerId:boundTab?.registerId||s.restaurant?.serviceRegisterId)&&!r.closed)||(kind==='table'&&!boundTab?[...s.registers].filter(r=>!r.closed).sort((a,b)=>b.opened.localeCompare(a.opened))[0]:null);
  if(kind==='waiter'&&!register)fail('registerClosed');
  const table=kind==='table'?diningTable(s,link.tableId):null;
  const {name,logo,language,theme,tableCustomerMode}=s.business,c=register?.currency||s.business.currency;

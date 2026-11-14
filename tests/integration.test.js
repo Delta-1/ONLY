@@ -562,7 +562,8 @@ test('closing PIN and feedback settings persist without exposing the PIN hash', 
   assert.equal((await call('/api/settings',{...settings,closePin:'9999'},operator)).status,403);
   await good('/api/settings',{...settings,minOrder:settings.minOrder/100,soundEffects:false,saleAnimations:false});
   assert.ok(store.business(before.id).closePinHash);
-  assert.ok(!store.business(before.id).closePinHash.includes('5678'));
+  // Random hexadecimal hashes may coincidentally contain the PIN's digits.
+  assert.match(store.business(before.id).closePinHash,/^[a-f0-9]{32}:[a-f0-9]{128}$/);
   await good('/api/registers/close',{id:second.id,counted:30,pin:'5678'});
   const foreign=await call('/api/registers/close',{id:second.id,counted:30,pin:'5678'},other);
   assert.equal(foreign.status,400);
