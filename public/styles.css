@@ -438,6 +438,22 @@ hr {
   font-size: 0.888889rem;
   max-width: 160px;
 }
+.top-actions .pos-currency { flex-shrink: 0; }
+.top-actions .pos-currency select { width: 80px; padding-inline: 8px; }
+@media screen and (max-width: 800px) {
+  .top-actions .pos-currency { padding-left: 0; }
+  .top-actions .pos-currency > svg { display: none; }
+  .top-actions .pos-currency select { width: 65px; min-height: 36px; padding-inline: 5px; }
+}
+@media screen and (max-width: 380px) {
+  .topbar:has([data-pos-currency]) .menu-button { width: 36px; padding: 7px; }
+  .topbar:has([data-pos-currency]) .menu-button span { display: none; }
+}
+@media screen and (min-width: 621px) and (max-height: 900px) {
+  :root:not([data-layout="classic"]) .operator-pos .product-visual { height: 96px; }
+  :root:not([data-layout="classic"]) .operator-pos .product-info { min-height: 108px; padding: 12px; }
+  .operator-pos .catalog-footer { margin-top: 16px; }
+}
 .search-wrap {
   display: flex;
   align-items: center;
@@ -448,6 +464,25 @@ hr {
   padding: 0 14px;
   margin-bottom: 20px;
   color: var(--muted);
+}
+.catalog-tools { display: flex; align-items: stretch; gap: 10px; margin-bottom: 20px; }
+.catalog-tools .search-wrap { flex: 1; min-width: 0; margin-bottom: 0; }
+.catalog-add { flex-shrink: 0; }
+.sale-edit-add { display: flex; align-items: flex-end; gap: 12px; margin-block: 16px; }
+.sale-edit-add .field { flex: 1; min-width: 0; }
+[data-sale-item] input { width: 110px; }
+.wide-dialog:has([data-day-sales]) { width: min(1200px, calc(100vw - 32px)); max-width: 1200px; }
+[data-day-sales] .actions { margin-bottom: 16px; }
+[data-day-sales] td:first-child { white-space: normal; overflow-wrap: anywhere; }
+[data-day-sales] td:nth-child(2) { white-space: normal; min-width: 130px; }
+[data-day-sales] td:last-child { white-space: normal; min-width: 210px; }
+@media screen and (max-width: 800px) {
+  .catalog-add span { display: none; }
+  .catalog-add { width: 48px; padding-inline: 10px; }
+}
+@media screen and (max-width: 620px) {
+  .sale-edit-add { flex-wrap: wrap; }
+  .sale-edit-add .field { flex-basis: 100%; }
 }
 .search-wrap:focus-within {
   border-color: var(--accent);

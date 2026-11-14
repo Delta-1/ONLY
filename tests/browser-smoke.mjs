@@ -71,10 +71,7 @@ try {
   await p.getByText("Vamos abrir o caixa?", { exact: true }).waitFor();
   await click("close-dialog");
   assert.ok(await p.locator('[data-action="checkout"]').isDisabled());
-  await click("menu");
-  await click("erp");
-  await p.locator('[data-view="products"]').click();
-  await click("new-product");
+  await p.locator('.catalog-tools [data-action="new-product"]').click();
   await p.locator('dialog [name="name"]').fill("Café especial");
   await p.locator('dialog [name="code"]').fill("CAF-001");
   await p.locator('dialog [name="category"]').fill("Bebidas");
@@ -89,6 +86,8 @@ try {
   await submit("product");
   await p.locator("dialog").waitFor({ state: "hidden" });
   await p.getByText("Café especial", { exact: true }).waitFor();
+  await click("menu");
+  await click("erp");
   // Add the remaining sample products through the same authenticated HTTP boundary.
   const seeded = await p.evaluate(async () => {
     const products = [
@@ -136,6 +135,11 @@ try {
   await p.locator('dialog [name="opening"]').fill("100");
   await submit("open-register");
   await p.locator("dialog").waitFor({ state: "hidden" });
+  assert.equal(await p.locator('.catalog-area .section-title, .pos-register-strip').count(), 0);
+  await p.locator('.topbar [data-pos-currency]').selectOption('BOB');
+  assert.equal(await p.locator('.grand-total small').innerText(), 'BOB');
+  await p.locator('.topbar [data-pos-currency]').selectOption('BRL');
+  assert.equal(await p.locator('.cart-line').count(), 2, 'changing currency preserves the cart');
 
   // A normal notebook viewport must keep checkout on screen without scrolling
   // the document. More products and cart items scroll within their own panels.
@@ -168,6 +172,7 @@ try {
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await p.setViewportSize({ width: 1366, height: 768 });
   await p.locator('html').evaluate(el => { el.dataset.layout = 'clean'; });
+  assert.ok(await p.locator('.product-grid').evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'eight products fit in the notebook catalog');
   await p.screenshot({ path: join(artifacts, 'pdv-notebook-100.png'), animations: 'disabled' });
   await p.setViewportSize({ width: 1440, height: 1000 });
 
@@ -192,6 +197,27 @@ try {
   await p.locator("#toast").evaluate((el) => (el.className = ""));
   await p.screenshot({ animations: "disabled", path: join(artifacts, "comprovante.png") });
   await click("close-dialog");
+  // Manage today's sales from the PDV without replacing a draft cart.
+  await click('menu');await click('day-sales');
+  assert.ok(await p.locator('[data-day-sales] [data-action="cancel-sale"]').first().evaluate(el=>el.getBoundingClientRect().right <= el.closest('.table-wrap').getBoundingClientRect().right), 'daily sale actions fit the desktop dialog');
+  await p.locator('[data-day-sales] [data-action="edit-sale"]').first().click();
+  await p.locator('[data-edit-quantity]').first().fill('2');
+  await p.locator('[data-form="edit-sale"] [name="reason"]').fill('Corrigir quantidade');
+  await submit('edit-sale');
+  await p.locator('[data-day-sales]').waitFor();
+  const corrected = await p.evaluate(async()=> (await (await fetch('/api/workspace')).json()).sales[0]);
+  assert.equal(corrected.revision,1);assert.equal(corrected.history.length,1);
+  await p.screenshot({path:join(artifacts,'vendas-do-dia.png'),animations:'disabled'});
+  // A separate disposable sale exercises cancellation and visible history.
+  const disposable = await p.evaluate(async()=> {
+    const w=await (await fetch('/api/workspace')).json(),r=w.registers.find(r=>!r.closed),item=w.products[0];
+    return (await fetch('/api/sales',{method:'POST',headers:{'Content-Type':'application/json','X-Only-Request':'1'},body:JSON.stringify({requestId:crypto.randomUUID(),registerId:r.id,currency:r.currency,method:'cash',received:item.prices[r.currency]/100,items:[{id:item.id,quantity:1}]})})).json();
+  });
+  await p.locator('.modal-footer [data-action="day-sales"]').click();
+  await p.locator(`[data-day-sales] [data-action="cancel-sale"][data-id="${disposable.id}"]`).click();
+  await click('confirm-cancel-sale');await p.locator('[data-day-sales]').waitFor();
+  assert.ok(await p.locator('[data-day-sales] tbody').getByText('Cancelado',{exact:true}).isVisible());
+  await click('close-dialog');
   await click("menu");
   await click("erp");
   await p.locator('[data-view="catalog"]').click();
@@ -269,6 +295,11 @@ try {
     .waitFor();
   await p.setViewportSize({ width: 390, height: 844 });
   await click("pos");
+  for (const width of [320, 390]) {
+    await p.setViewportSize({ width, height: 844 });
+    assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'POS currency picker fits narrow phones');
+    assert.ok(await p.locator('.topbar [data-pos-currency]').isVisible());
+  }
   await p.locator("#toast").evaluate((el) => (el.className = ""));
   await p.screenshot({ animations: "disabled",
     path: join(artifacts, "pdv-mobile.png"),

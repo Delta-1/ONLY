@@ -184,6 +184,8 @@ export function createApp({
         }
         if (mutation && path === "/api/sales")
           return send(store.completeSale(b, u, body), 201);
+        if (mutation && path === "/api/sales/edit")
+          return send(store.editSale(b, u, body));
         if (mutation && path === "/api/sales/cancel") {
           store.owner(u);
           return send(store.cancel(b, body.id));

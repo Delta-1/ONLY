@@ -27,6 +27,7 @@ export function priceItems(s,b,publicMode=false){currency(b.currency);if(!Array.
 }
 export function balance(s,client,c){return s.sales.filter(v=>v.client?.id===client&&v.currency===c&&v.status!=='cancelled').reduce((n,v)=>n+v.due,0)-s.receipts.filter(v=>v.client===client&&v.currency===c).reduce((n,v)=>n+v.amount,0);}
 export function workspace(s,u,users=[]){const result=structuredClone(s);delete result.links;result.business=publicBusiness(result.business);result.user=u;result.users=u.role==='owner'?users:[];result.links=u.role==='owner'?s.links.map(({code,kind,expires,active})=>({code,kind,expires,active})):[];result.drafts=u.role==='owner'?result.drafts:[];
+ result.capabilities={saleEditing:true};
  result.products.sort((a,b)=>a.code.localeCompare(b.code));result.clients=result.clients.map(c=>({...c,balances:Object.fromEntries(currencies.map(code=>[code,balance(s,c.id,code)]))}));result.registers=result.registers.map(r=>({...r,expected:r.closed?r.expected:expected(s,r)})).sort((a,b)=>b.opened.localeCompare(a.opened));
  const credits=new Map();for(const r of s.receipts){const k=`${r.client}:${r.currency}`;credits.set(k,(credits.get(k)||0)+r.amount);}
  for(const sale of [...result.sales].sort((a,b)=>a.date.localeCompare(b.date))){const k=`${sale.client?.id}:${sale.currency}`,credit=credits.get(k)||0,applied=sale.status==='cancelled'?0:Math.min(sale.due,credit);sale.outstanding=sale.status==='cancelled'?0:sale.due-applied;credits.set(k,credit-applied);}
@@ -41,6 +42,7 @@ export function publicMutation(s,key,kind,action,b,keyHash){publicCatalog(s,key,
  if(action!=='order'||kind==='collaborate')fail('notFound',404);const requestId=text(b.requestId,100);if(requestId.length<12)fail('requestIdRequired');const old=s.orders.find(o=>o.requestId===requestId);if(old)return {id:old.id,number:old.number,status:old.status};if(!text(b.customer)||!text(b.phone))fail('required');const items=priceItems(s,b,true),total=items.reduce((n,i)=>n+i.total,0);if(b.currency!==s.business.currency)fail('invalidCurrency');if(total<s.business.minOrder)fail('minimumOrder');const keyId=id(),o={id:keyId,number:`P-${keyId.slice(0,8).toUpperCase()}`,date:now(),items,total,currency:b.currency,customer:text(b.customer),phone:text(b.phone,60),address:text(b.address),table:text(b.table,60),notes:text(b.notes,1000),channel:kind,status:'new',requestId};s.orders.push(o);return {id:o.id,number:o.number,status:o.status};
 }
 export function mutate(s,u,path,b,context={}){
+ if(path==='/api/sales/edit')return reviseSale(s,u,b);
  if(['/api/settings','/api/products','/api/links','/api/links/revoke','/api/drafts/approve','/api/drafts/reject','/api/sales/cancel'].includes(path))owner(u);
  if(path==='/api/settings'){const old=s.business,next={...old,name:text(b.name),currency:currency(b.currency),language:['pt','es','en'].includes(b.language)?b.language:'pt',theme:b.theme==='light'?'light':'dark',layout:b.layout==='classic'?'classic':'clean',menuPosition:b.menuPosition==='side'?'side':'top',showCatalog:b.showCatalog!==false,soundEffects:(b.soundEffects??old.soundEffects)!==false,saleAnimations:(b.saleAnimations??old.saleAnimations)!==false,...(context.closePinHash?{closePinHash:context.closePinHash}:{}),logo:image(b.logo),phone:text(b.phone,50),address:text(b.address),taxId:text(b.taxId,50),storeEnabled:Boolean(b.storeEnabled),storeDescription:text(b.storeDescription,1000),minOrder:amount(b.minOrder||0)};if(!next.name)fail('required');s.business=next;return publicBusiness(next);}
  if(path==='/api/products'){if(b.id)product(s,b.id);return writeProduct(s,normalizeProduct(b,b.id));}
@@ -62,4 +64,57 @@ export function mutate(s,u,path,b,context={}){
  if(path==='/api/drafts/reject'){s.drafts=s.drafts.filter(d=>d.id!==b.id);return {ok:true};}
  if(path==='/api/orders/status'){if(!['accepted','cancelled'].includes(b.status))fail('invalidStatus');const o=s.orders.find(o=>o.id===b.id);if(!o)fail('notFound',404);if(['completed','cancelled'].includes(o.status))fail('orderAlreadyProcessed',409);o.status=b.status;return {ok:true};}
  fail('notFound',404);
+}
+
+// Validate the entire correction before applying stock or sale changes. The
+// caller commits this state atomically (SQLite transaction / workspace CAS).
+export function reviseSale(s,u,b){
+ owner(u);
+ const sale=s.sales.find(v=>v.id===b.id);
+ if(!sale)fail('notFound',404);
+ const requestId=text(b.requestId,100);
+ if(requestId.length<12)fail('requestIdRequired');
+ if(sale.lastEditRequestId===requestId)return sale;
+ if(sale.status==='cancelled')fail('saleCancelled');
+ if(b.revision!==(sale.revision||0))fail('concurrentUpdate',409);
+ if(!s.registers.some(r=>r.id===sale.registerId&&!r.closed))fail('registerClosed');
+ if(s.receipts.some(r=>r.client===sale.client?.id&&r.currency===sale.currency))fail('saleHasReceipts');
+ const reason=text(b.reason,500);
+ if(!reason)fail('required');
+ if(!Array.isArray(b.items)||!b.items.length||b.items.length>200)fail('emptyCart');
+ const seen=new Set(),items=b.items.map(i=>{
+  if(!i||seen.has(i.id))fail('invalidQuantity');seen.add(i.id);
+  const p=product(s,i.id),quantity=qty(i.quantity),price=amount(i.price);
+  if(!quantity)fail('invalidQuantity');
+  if(!p.active&&!sale.items.some(old=>old.id===p.id))fail('unavailableProduct');
+  return {id:p.id,code:p.code,name:p.name,quantity,price,total:Math.round(quantity*price)};
+ });
+ const subtotal=items.reduce((n,i)=>n+i.total,0),discount=amount(b.discount||0);
+ if(!Number.isSafeInteger(subtotal))fail('invalidAmount');
+ if(discount>subtotal)fail('invalidDiscount');
+ const total=subtotal-discount,method=b.method;
+ if(!['cash','pix','qr','card','transfer','credit'].includes(method))fail('invalidPayment');
+ const client=b.clientId?s.clients.find(c=>c.id===b.clientId):null;
+ if(b.clientId&&!client)fail('notFound',404);
+ if(client&&s.receipts.some(r=>r.client===client.id&&r.currency===sale.currency))fail('saleHasReceipts');
+ const tender=cashTenderSummary(total/100,method==='credit'?0:b.received??total/100);
+ if(!tender.valid)fail('invalidAmount');
+ if(tender.remaining&&!client)fail('clientRequired');
+ if(tender.remaining&&b.allowPartial!==true&&method!=='credit')fail('insufficientPayment');
+ if(method!=='cash'&&tender.change)fail('nonCashOverpayment');
+ const changes=[];
+ for(const key of new Set([...sale.items,...items].map(i=>i.id))){
+  const p=product(s,key);
+  if(p.trackStock){
+   const old=sale.items.filter(i=>i.id===key).reduce((n,i)=>n+i.quantity,0),next=items.filter(i=>i.id===key).reduce((n,i)=>n+i.quantity,0);
+   const stock=Math.round((p.stock+old-next)*1000)/1000;
+   if(stock<0)fail('insufficientStock');changes.push([p,qty(stock)]);
+  }
+ }
+ const {history=[],outstanding,...previous}=structuredClone(sale),at=now(),paid=Math.min(cents(tender.received),total);
+ const revised={...previous,items,subtotal,discount,total,method,received:cents(tender.received),change:cents(tender.change),paid,due:total-paid,client:client?structuredClone(client):null,notes:text(b.notes,1000),revision:(sale.revision||0)+1,lastEditRequestId:requestId,editedAt:at,history:[...history,{at,user:u.id,name:u.name,reason,previous}]};
+ for(const [p,stock] of changes)p.stock=stock;
+ Object.assign(sale,revised);
+ delete sale.outstanding;
+ return sale;
 }

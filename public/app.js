@@ -166,9 +166,11 @@ const languagePicker = () =>
     ],
     lang(),
   )}</select>`;
+const posCurrencyPicker = () =>
+  `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}" title="${t("currency")}">${opts(currencies.map(c => [c, c]), posCurrency)}</select></div>`;
 function header() {
   const reg = currentRegister();
-  return `<header class="topbar">${brand()}<div class="top-actions"><span class="connection ${navigator.onLine ? "" : "offline"}"><i></i>${t(navigator.onLine ? "online" : "offline")}</span>${languagePicker()}${publicMode ? "" : `${btn("registers", t("cash"), "wallet", reg ? "soft" : "", `aria-label="${t("cash")}" title="${esc(reg ? `${t("cash")} · ${reg.name}` : t("cash"))}"`)} ${mode === "erp" ? btn("pos", t("pos"), "cart", "primary") : ""}${btn("menu", t("menu"), "menu", "menu-button")}`}</div></header>`;
+  return `<header class="topbar">${brand()}<div class="top-actions"><span class="connection ${navigator.onLine ? "" : "offline"}"><i></i>${t(navigator.onLine ? "online" : "offline")}</span>${!publicMode && mode === "pos" ? posCurrencyPicker() : ""}${languagePicker()}${publicMode ? "" : `${btn("registers", t("cash"), "wallet", reg ? "soft" : "", `aria-label="${t("cash")}" title="${esc(reg ? `${t("cash")} · ${reg.name}` : t("cash"))}"`)} ${mode === "erp" ? btn("pos", t("pos"), "cart", "primary") : ""}${btn("menu", t("menu"), "menu", "menu-button")}`}</div></header>`;
 }
 function auth() {
   app.innerHTML = `<div class="auth-shell"><aside class="auth-visual"><span class="wordmark">only<i>®</i></span><div><small>PDV + ERP</small><h1>${esc(t("loginPitch")).replace("\n", "<br>")}</h1><p>${t("loginHint")}</p><div class="auth-pills"><span>${svg("cart")} ${t("pos")}</span><span>${svg("store")} ${t("catalog")}</span><span>${svg("chart")} ${t("reports")}</span></div></div><footer>onlysystem · 2026</footer><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></aside><section class="auth-panel"><div class="auth-top">${languagePicker()}${btn("join", t("join"), "smartphone")}</div><div class="auth-form"><span class="eyebrow">ONLY SYSTEM</span><h2>${t(authTab === "login" ? "loginTitle" : "signup")}</h2><p>${t(authTab === "login" ? "loginHint" : "signupHint")}</p><div class="segmented">${btn("auth-login", t("login"), "", "", `aria-pressed="${authTab === "login"}"`)}${btn("auth-signup", t("signup"), "", "", `aria-pressed="${authTab === "signup"}"`)}</div><form data-form="${authTab}">${authTab === "signup" ? field(t("name"), "name", "", "text", 'required autocomplete="name"') + field(t("businessName"), "businessName", "", "text", 'required autocomplete="organization"') : ""}${field(t("email"), "email", "", "email", 'required autocomplete="username"')}${field(t("password"), "password", "", "password", `required minlength="8" maxlength="128" autocomplete="${authTab === "signup" ? "new-password" : "current-password"}"`)}<p class="form-error" data-inline-error hidden></p><button class="btn primary wide" type="submit">${t(authTab === "login" ? "login" : "signup")}${svg("chevron")}</button></form></div><small class="auth-foot">ONLY · PDV & ERP</small></section></div>`;
@@ -253,7 +255,7 @@ function pos() {
     reg = currentRegister(),
     sum = subtotal();
   const show = publicMode || settings().showCatalog !== false;
-  return `<div class="pos-shell ${show ? "" : "no-catalog"}"><section class="catalog-area"><div class="section-title"><div><span class="eyebrow">${publicMode ? esc(settings().name) : "ONLY POINT OF SALE"}</span><h1>${t(publicMode === "store" ? "catalog" : publicMode ? "mobile" : "pos")}<span class="live-dot"></span></h1><p>${publicMode ? esc(settings().storeDescription || t("storeHint")) : t("noConversion")}</p></div>${!publicMode ? `<div class="pos-currency">${svg("globe")}<select data-pos-currency aria-label="${t("currency")}">${currencyOptions(posCurrency)}</select></div>` : ""}</div>${!publicMode && reg ? `<div class="pos-register-strip"><div>${svg("wallet")}<span><strong>${esc(reg.name)}</strong><small>${t("registerOpen")} · ${reg.currency}</small></span></div></div>` : ""}<div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div></div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
+  return `<div class="pos-shell ${!publicMode ? "operator-pos" : ""} ${show ? "" : "no-catalog"}"><section class="catalog-area">${publicMode ? `<div class="section-title"><div><span class="eyebrow">${esc(settings().name)}</span><h1>${t(publicMode === "store" ? "catalog" : "mobile")}<span class="live-dot"></span></h1><p>${esc(settings().storeDescription || t("storeHint"))}</p></div></div>` : ""}<div class="catalog-tools"><div class="search-wrap">${svg("search")}<input id="search" autocomplete="off" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}"><kbd>F2</kbd></div>${!publicMode && isOwner() ? btn("new-product", t("newProduct"), "plus", "catalog-add", `aria-label="${t("newProduct")}" title="${t("newProduct")}"`) : ""}</div><div class="categories"><button data-category="" class="${!activeCategory ? "active" : ""}">${t("all")}</button>${categories.map((c) => `<button data-category="${esc(c)}" class="${c === activeCategory ? "active" : ""}">${esc(c)}</button>`).join("")}</div><div id="productGrid" class="product-grid">${cards()}</div><footer class="catalog-footer"><span>${num(catalogProducts().length)} ${t("products").toLowerCase()}</span>${!publicMode ? `<span>F2 · ${t("search").split(",")[0]}<i>F9 · ${t("checkout")}</i></span>` : ""}</footer></section><aside class="cart-panel"><div class="cart-heading"><div class="cart-title-icon">${svg("cart")}</div><div><h2>${t("cart")}</h2><small>${cart.length} ${t("products").toLowerCase()} ${orderId ? " · " + t("orders") : ""}</small></div>${cart.length ? btn("clear-cart", t("remove"), "trash", "text-button") : ""}</div>${!publicMode ? `<div class="client-select">${svg("users")}<select data-pos-client aria-label="${t("customer")}">${opts([["", t("finalCustomer")], ...data.clients.map((c) => [c.id, c.name])], pos.clientId)}</select>${btn("new-client", "+", "", "square")}</div>` : ""}<div id="cartItems" class="cart-items">${cartMarkup()}</div><div class="cart-bottom">${!publicMode ? `<div class="sale-options">${check("wholesale", t("wholesale"), wholesale)}${btn("sale-notes", t("notes"), "edit", "text-button")}</div>` : ""}<div class="total-row"><span>${t("subtotal")}</span><b id="cartSubtotal">${money(sum)}</b></div>${!publicMode ? `<label class="discount-row"><span>${t("discount")} (${posCurrency})</span><input id="discount" inputmode="decimal" value="${esc(pos.discount || "0")}" aria-label="${t("discount")}"></label>` : ""}<div class="grand-total"><span>${t("total")} <small>${posCurrency}</small></span><strong id="grandTotal">${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></div>${pendingForBusiness() ? `<div class="notice">${t("retry")} · ${t("checkout")}</div>` : ""}<button type="button" class="btn primary checkout" data-action="${pendingForBusiness() ? "retry-sale" : publicMode ? "order-checkout" : "checkout"}" ${cart.length || pendingForBusiness() ? "" : "disabled"}>${svg(publicMode ? "check" : "card")}<span>${t(pendingForBusiness() ? "retry" : publicMode ? "makeOrder" : "checkout")}</span>${!publicMode ? "<kbd>F9</kbd>" : ""}</button><div class="cart-note">${publicMode ? t("orderDoneHint") : reg ? `${svg("wallet")} ${esc(reg.name)} · ${t("registerOpen")}` : t("checkoutHint")}</div></div></aside></div><nav class="mobile-pos-bar" aria-label="${t("pos")}">${btn("mobile-products", t("products"), "box", mobileView === "products" ? "active" : "", !show ? "disabled" : "")}${btn("mobile-cart", t("cart"), "cart", mobileView === "cart" ? "active" : "")}<strong data-mobile-total>${money(Math.max(0, sum - cents(parseTenderAmount(pos.discount || 0) || 0)))}</strong></nav>`;
 }
 const posState = { clientId: "", discount: "0", notes: "" };
 Object.assign(pos, posState);
@@ -667,8 +669,41 @@ function formModal(title, type, fields, extra = "", wide = false) {
     wide,
   );
 }
+let returnToDaySales = false;
+function daySalesModal() {
+  const today = localDay(new Date()), sales = data.sales.filter(s => localDay(s.date) === today);
+  const totals = currencies.map(c => {
+    const rows = sales.filter(s => s.currency === c && s.status !== 'cancelled');
+    return rows.length ? `<span class="badge">${c}: ${money(rows.reduce((n,s) => n + s.total, 0), c)}</span>` : '';
+  }).join('');
+  modal(t('daySales'), `<div data-day-sales><p class="hint">${esc(new Date().toLocaleDateString())}</p><div class="actions">${totals}</div>${table([t('code'), t('date'), t('customer'), t('total'), t('status'), t('actions')], sales.map(s => {
+    const open = data.registers.some(r => r.id === s.registerId && !r.closed), editable = isOwner() && s.status !== 'cancelled';
+    return [esc(s.number), date(s.date), esc(s.client?.name || t('finalCustomer')), money(s.total, s.currency), `<span class="badge ${s.status === 'cancelled' ? '' : 'success'}">${t(s.status)}</span>`, btn('receipt',t('receipt'),'receipt','small',`data-id="${s.id}"`) + (editable ? btn('edit-sale',t('edit'),'edit','small',`data-id="${s.id}" ${open && data.capabilities?.saleEditing ? '' : 'disabled'} title="${esc(t(!open ? 'registerClosed' : data.capabilities?.saleEditing ? 'editSale' : 'editingUnavailable'))}"`) + btn('cancel-sale',t('cancelSale'),'close','small',`data-id="${s.id}" ${open ? '' : 'disabled'}`) : '')];
+  }))}</div>`, btn('day-sales',t('refresh'),'transfer') + btn('close-dialog',t('backToPos'),'cart'), true);
+}
+function saleEditRow(item) {
+  return `<tr data-sale-item="${esc(item.id)}"><td>${esc(item.name)}</td><td><input data-edit-quantity type="number" min="0.001" max="10000000" step="0.001" required value="${item.quantity}" aria-label="${esc(t('quantity') + ' · ' + item.name)}"></td><td><input data-edit-price type="number" min="0" max="1000000000" step="0.01" required value="${(item.price / 100).toFixed(2)}" aria-label="${esc(t('price') + ' · ' + item.name)}"></td><td>${btn('remove-sale-item',t('remove'),'trash','small',`aria-label="${esc(t('remove') + ' · ' + item.name)}"`)}</td></tr>`;
+}
+function editSaleForm(id) {
+  const s = data.sales.find(s => s.id === id);
+  if (!s || !isOwner() || !data.capabilities?.saleEditing) return;
+  const available = data.products.filter(p => p.active && p.prices[s.currency] != null);
+  formModal(`${t('editSale')} · ${s.number}`, 'edit-sale', `<input type="hidden" name="id" value="${s.id}"><input type="hidden" name="revision" value="${s.revision || 0}"><input type="hidden" name="requestId" value="${crypto.randomUUID()}"><p class="hint">${t('editSaleHint')}</p><div class="table-wrap"><table><thead><tr><th>${t('products')}</th><th>${t('quantity')}</th><th>${t('price')} (${s.currency})</th><th>${t('actions')}</th></tr></thead><tbody data-sale-edit-items>${s.items.map(saleEditRow).join('')}</tbody></table></div><div class="sale-edit-add">${select(t('products'),'addProductId',opts(available.map(p=>[p.id,p.name]),''))}${btn('add-sale-item',t('addProduct'),'plus')}</div><div class="form-grid">${select(t('customer'),'clientId',opts([['',t('finalCustomer')],...data.clients.map(c=>[c.id,c.name])],s.client?.id || ''))}${select(t('checkout'),'method',opts(['cash','pix','qr','card','transfer','credit'].map(m=>[m,t(m==='cash'?'cashMethod':m)]),s.method))}${field(`${t('discount')} (${s.currency})`,'discount',(s.discount/100).toFixed(2),'number','min="0" step="0.01" required')}${field(`${t('received')} (${s.currency})`,'received',(s.received/100).toFixed(2),'text','inputmode="decimal" required')}${field(t('notes'),'notes',s.notes || '')}${field(t('editReason'),'reason','','text','required maxlength="500"')}</div>${check('allowPartial',t('partial'),s.due>0)}<div class="grand-total"><span>${t('total')} ${s.currency}</span><strong data-edit-total></strong></div>`, `data-currency="${s.currency}"`, true);
+  updateSaleEditTotal();
+}
+function saleEditItems(form) {
+  return [...form.querySelectorAll('[data-sale-item]')].map(row => ({id:row.dataset.saleItem,quantity:Number(row.querySelector('[data-edit-quantity]').value),price:row.querySelector('[data-edit-price]').value}));
+}
+function updateSaleEditTotal() {
+  const form = $('form[data-form="edit-sale"]',dialog);
+  if (!form) return;
+  const sum = saleEditItems(form).reduce((n,i)=>n + Math.round(cents(Number(i.price)) * i.quantity),0);
+  $('[data-edit-total]',form).textContent = money(Math.max(0,sum-cents(Number(form.elements.discount.value))),form.dataset.currency);
+}
 function menu() {
   const entries = [
+    ["day-sales", "daySales", "receipt"],
+    ["new-product", "newProduct", "plus"],
     ["customize", "customization", "settings"],
     ["currency", "currency", "globe"],
     ["mobile", "mobile", "smartphone"],
@@ -680,7 +715,7 @@ function menu() {
     t("menu"),
     `<div class="menu-grid">${entries
       .filter(
-        ([a]) => isOwner() || !["customize", "currency", "store"].includes(a),
+        ([a]) => isOwner() || !["customize", "currency", "store", "new-product"].includes(a),
       )
       .map(
         ([action, key, icon]) =>
@@ -1031,6 +1066,17 @@ const actions = {
     window.scrollTo(0, 0);
   },
   menu,
+  "day-sales": async () => { await load(true); daySalesModal(); },
+  "edit-sale": (el) => { returnToDaySales = !!el.closest('[data-day-sales]'); editSaleForm(el.dataset.id); },
+  "add-sale-item": () => {
+    const form = $('form[data-form="edit-sale"]',dialog), p = data.products.find(p=>p.id === form.elements.addProductId.value);
+    if (!p) return;
+    const row = [...form.querySelectorAll('[data-sale-item]')].find(row=>row.dataset.saleItem === p.id);
+    if (row) row.querySelector('[data-edit-quantity]').value = Number(row.querySelector('[data-edit-quantity]').value) + 1;
+    else $('[data-sale-edit-items]',form).insertAdjacentHTML('beforeend',saleEditRow({...p,quantity:1,price:p.prices[form.dataset.currency]}));
+    updateSaleEditTotal();
+  },
+  "remove-sale-item": (el) => { el.closest('[data-sale-item]').remove(); updateSaleEditTotal(); },
   "close-dialog": () => dialog.close(),
   pos: () => {
     dialog.close();
@@ -1109,6 +1155,7 @@ const actions = {
   export: exportCsv,
   refresh,
   "cancel-sale": (el) => {
+    returnToDaySales = !!el.closest('[data-day-sales]');
     modal(
       t("cancelSale"),
       `<p>${t("confirmCancel")}</p>`,
@@ -1126,6 +1173,7 @@ const actions = {
     await api("/api/sales/cancel", { id: el.dataset.id });
     dialog.close();
     await refresh();
+    if (returnToDaySales) daySalesModal();
   },
   "accept-order": async (el) => {
     await api("/api/orders/status", { id: el.dataset.id, status: "accepted" });
@@ -1382,6 +1430,7 @@ document.addEventListener("click", (e) => {
   }
 });
 document.addEventListener("input", (e) => {
+  if (e.target.closest('form[data-form="edit-sale"]')) updateSaleEditTotal();
   if (e.target.id === "search") {
     query = e.target.value;
     $("#productGrid").innerHTML = cards();
@@ -1404,6 +1453,10 @@ document.addEventListener("input", (e) => {
 document.addEventListener("change", async (e) => {
   try {
     const el = e.target;
+    if (el.closest('form[data-form="edit-sale"]')) {
+      if (el.name === 'method' && el.value === 'credit') el.form.elements.received.value = '0';
+      updateSaleEditTotal();
+    }
     if (el.matches("[data-language]")) {
       setLanguage(el.value);
       if (path[0] === "join") joinPage();
@@ -1541,6 +1594,13 @@ document.addEventListener("submit", async (e) => {
           subtotal() - cents(parseTenderAmount(pos.discount || 0) || 0),
       };
       await sendSale(payload);
+    }
+    if (kind === "edit-sale") {
+      await api('/api/sales/edit', {...fields, revision:Number(fields.revision), items:saleEditItems(form), allowPartial:form.elements.allowPartial.checked});
+      dialog.close();
+      await refresh();
+      if (returnToDaySales) daySalesModal();
+      toast(t('saleUpdated'));
     }
     if (kind === "close-register") {
       await api("/api/registers/close", fields);
