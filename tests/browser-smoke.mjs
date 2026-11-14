@@ -136,6 +136,11 @@ try {
   await p.locator('dialog [name="opening"]').fill("100");
   await submit("open-register");
   await p.locator("dialog").waitFor({ state: "hidden" });
+  assert.equal(await p.locator('.catalog-area .section-title, .pos-register-strip').count(), 0);
+  await p.locator('.topbar [data-pos-currency]').selectOption('BOB');
+  assert.equal(await p.locator('.grand-total small').innerText(), 'BOB');
+  await p.locator('.topbar [data-pos-currency]').selectOption('BRL');
+  assert.equal(await p.locator('.cart-line').count(), 2, 'changing currency preserves the cart');
 
   // A normal notebook viewport must keep checkout on screen without scrolling
   // the document. More products and cart items scroll within their own panels.
@@ -168,6 +173,7 @@ try {
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await p.setViewportSize({ width: 1366, height: 768 });
   await p.locator('html').evaluate(el => { el.dataset.layout = 'clean'; });
+  assert.ok(await p.locator('.product-grid').evaluate(el => el.scrollHeight <= el.clientHeight + 1), 'eight products fit in the notebook catalog');
   await p.screenshot({ path: join(artifacts, 'pdv-notebook-100.png'), animations: 'disabled' });
   await p.setViewportSize({ width: 1440, height: 1000 });
 
@@ -269,6 +275,11 @@ try {
     .waitFor();
   await p.setViewportSize({ width: 390, height: 844 });
   await click("pos");
+  for (const width of [320, 390]) {
+    await p.setViewportSize({ width, height: 844 });
+    assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'POS currency picker fits narrow phones');
+    assert.ok(await p.locator('.topbar [data-pos-currency]').isVisible());
+  }
   await p.locator("#toast").evaluate((el) => (el.className = ""));
   await p.screenshot({ animations: "disabled",
     path: join(artifacts, "pdv-mobile.png"),

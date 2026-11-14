@@ -438,6 +438,21 @@ hr {
   font-size: 0.888889rem;
   max-width: 160px;
 }
+.top-actions .pos-currency { flex-shrink: 0; }
+.top-actions .pos-currency select { width: 80px; padding-inline: 8px; }
+@media screen and (max-width: 800px) {
+  .top-actions .pos-currency { padding-left: 0; }
+  .top-actions .pos-currency > svg { display: none; }
+  .top-actions .pos-currency select { width: 65px; min-height: 36px; padding-inline: 5px; }
+}
+@media screen and (max-width: 380px) {
+  .topbar:has([data-pos-currency]) .menu-button { width: 36px; padding: 7px; }
+  .topbar:has([data-pos-currency]) .menu-button span { display: none; }
+}
+@media screen and (min-width: 621px) and (max-height: 900px) {
+  :root:not([data-layout="classic"]) .operator-pos .product-visual { height: 104px; }
+  :root:not([data-layout="classic"]) .operator-pos .product-info { min-height: 108px; padding: 12px; }
+}
 .search-wrap {
   display: flex;
   align-items: center;
