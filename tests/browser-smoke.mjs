@@ -137,6 +137,38 @@ try {
   await submit("open-register");
   await p.locator("dialog").waitFor({ state: "hidden" });
 
+  // A normal notebook viewport must keep checkout on screen without scrolling
+  // the document. More products and cart items scroll within their own panels.
+  for (const layout of ["essential", "classic"]) {
+    await p.locator("html").evaluate((el, value) => { el.dataset.layout = value; }, layout);
+    for (const [width, height] of [[1920, 1080], [1366, 768], [1280, 720], [1024, 768], [800, 600]]) {
+      await p.setViewportSize({ width, height });
+      const fit = await p.evaluate(() => {
+        const root = document.documentElement;
+        const checkout = document.querySelector('[data-action="checkout"]').getBoundingClientRect();
+        const footer = document.querySelector('.catalog-footer').getBoundingClientRect();
+        const panel = document.querySelector('.cart-panel');
+        return {
+          documentFits: root.scrollHeight <= innerHeight + 1 && root.scrollWidth <= innerWidth,
+          checkoutFits: checkout.top >= 0 && checkout.bottom <= innerHeight + 1,
+          footerFits: footer.bottom <= innerHeight + 1,
+          cartFits: panel.scrollHeight <= panel.clientHeight + 1,
+        };
+      });
+      assert.deepEqual(fit, { documentFits: true, checkoutFits: true, footerFits: true, cartFits: true }, `${layout} ${width}x${height}`);
+    }
+  }
+  // A much smaller effective viewport (for example after increasing browser
+  // zoom) may scroll the panel, but receiving payment must remain reachable.
+  await p.setViewportSize({ width: 683, height: 384 });
+  await p.locator('[data-action="checkout"]').scrollIntoViewIfNeeded();
+  assert.ok(await p.locator('[data-action="checkout"]').evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1; }));
+  assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await p.setViewportSize({ width: 1366, height: 768 });
+  await p.locator('html').evaluate(el => { el.dataset.layout = 'essential'; });
+  await p.screenshot({ path: join(artifacts, 'pdv-notebook-100.png'), animations: 'disabled' });
+  await p.setViewportSize({ width: 1440, height: 1000 });
+
   await p.locator("#toast").evaluate((el) => (el.className = ""));
   await p.screenshot({ animations: "disabled",
     path: join(artifacts, "pdv-desktop.png"),
@@ -197,6 +229,14 @@ try {
   await click("menu");
   await click("erp");
   await p.locator('[data-view="reports"]').click();
+  for (const [width, height] of [[1366, 768], [1280, 720]]) {
+    await p.setViewportSize({ width, height });
+    assert.equal(await p.evaluate(() => document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth), false, 'ERP stays inside the viewport');
+    await p.locator('.erp-nav [data-action="logout"]').scrollIntoViewIfNeeded();
+    assert.ok(await p.locator('.erp-nav [data-action="logout"]').evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1; }));
+  }
+  await p.screenshot({ path: join(artifacts, 'erp-notebook-100.png'), animations: 'disabled' });
+  await p.setViewportSize({ width: 1440, height: 1000 });
   await p.locator("#toast").evaluate((el) => (el.className = ""));
   await p.screenshot({ animations: "disabled",
     path: join(artifacts, "erp-desktop.png"),
