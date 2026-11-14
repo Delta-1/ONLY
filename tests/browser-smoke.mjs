@@ -199,6 +199,7 @@ try {
   await click("close-dialog");
   // Manage today's sales from the PDV without replacing a draft cart.
   await click('menu');await click('day-sales');
+  assert.ok(await p.locator('[data-day-sales] [data-action="cancel-sale"]').first().evaluate(el=>el.getBoundingClientRect().right <= el.closest('.table-wrap').getBoundingClientRect().right), 'daily sale actions fit the desktop dialog');
   await p.locator('[data-day-sales] [data-action="edit-sale"]').first().click();
   await p.locator('[data-edit-quantity]').first().fill('2');
   await p.locator('[data-form="edit-sale"] [name="reason"]').fill('Corrigir quantidade');

@@ -471,6 +471,11 @@ hr {
 .sale-edit-add { display: flex; align-items: flex-end; gap: 12px; margin-block: 16px; }
 .sale-edit-add .field { flex: 1; min-width: 0; }
 [data-sale-item] input { width: 110px; }
+.wide-dialog:has([data-day-sales]) { width: min(1200px, calc(100vw - 32px)); max-width: 1200px; }
+[data-day-sales] .actions { margin-bottom: 16px; }
+[data-day-sales] td:first-child { white-space: normal; overflow-wrap: anywhere; }
+[data-day-sales] td:nth-child(2) { white-space: normal; min-width: 130px; }
+[data-day-sales] td:last-child { white-space: normal; min-width: 210px; }
 @media screen and (max-width: 800px) {
   .catalog-add span { display: none; }
   .catalog-add { width: 48px; padding-inline: 10px; }
