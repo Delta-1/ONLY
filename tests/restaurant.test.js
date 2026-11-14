@@ -72,3 +72,21 @@ for(const backend of ['cloud','sqlite'])test(`${backend}: restaurant tabs, scope
   call('/api/settings',{...settings,restaurantEnabled:false});assert.equal(read().restaurant,null);assert.throws(()=>view('table',qr.token),/restaurantDisabled/);
  }finally{if(db)db.db.close();if(dir)rmSync(dir,{recursive:true,force:true});}
 });
+
+test('cloud gateway: simultaneous waiter devices append to one tab after a version conflict',async()=>{
+ const {createHandler,digest}=await import('../supabase/functions/only/handler.js');
+ const user={id:crypto.randomUUID(),business:crypto.randomUUID(),name:'Owner',role:'owner'},state=initialState({...defaults,id:user.business});
+ mutate(state,user,'/api/settings',{...defaults,name:'Concurrent QA',commerceType:'restaurant',restaurantEnabled:true,tableCount:2,tableCustomerMode:'menu'});
+ const p=mutate(state,user,'/api/products',{name:'Coffee',prices:{BRL:5},stock:10}),r=mutate(state,user,'/api/registers/open',{name:'Cash',currency:'BRL'}),raw=crypto.randomUUID();
+ mutate(state,user,'/api/restaurant/links',{kind:'waiter',registerId:r.id},{linkToken:raw,linkHash:await digest(raw),linkCode:'WAITER'});
+ let saved=state,version=1,conflicts=0,reads=0,releaseReads;const readGate=new Promise(resolve=>{releaseReads=resolve;});
+ const handler=createHandler({qr:async()=>'',rpc:async(op,data)=>{
+  if(op==='rate_limit')return {allowed:true};
+  if(op==='read_workspace'){const row={id:user.business,version,body:structuredClone(saved)};if(reads<2){reads++;if(reads===2)releaseReads();await readGate;}return row;}
+  if(op==='write_workspace'){if(data.version!==version){conflicts++;return {updated:false};}saved=structuredClone(data.body);version++;return {updated:true};}
+  throw Error('Unexpected operation '+op);
+ }});
+ const send=name=>handler(new Request(`https://test.invalid/functions/v1/only/api/public/waiter/${raw}/order`,{method:'POST',headers:{'Content-Type':'application/json','X-Only-Request':'1'},body:JSON.stringify({requestId:crypto.randomUUID(),tableId:state.restaurant.tables[0].id,currency:'BRL',waiter:name,items:[{id:p.id,quantity:1}]})}));
+ const responses=await Promise.all([send('Waiter A'),send('Waiter B')]);assert.deepEqual(responses.map(r=>r.status),[201,201]);
+ assert.ok(conflicts>=1);assert.equal(saved.restaurant.tabs.length,1);assert.equal(saved.orders.length,2);assert.equal(saved.restaurant.tabs[0].revision,2);assert.equal(workspace(saved,user).restaurant.tables[0].tab.total,1000);
+});

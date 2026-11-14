@@ -1831,7 +1831,7 @@ function diningPage() {
   if(diningSection==='tableQr')return `<section class="dining-page">${heading}${tools}<div class="page-title"><p>${t('tableQrHint')}</p>${btn('print-all-tables',t('printAllTables'),'receipt','primary',register?'':'disabled')}</div><div class="tables-grid">${diningTables().map(table=>`<article class="table-square qr-table-card">${svg('qr')}<strong>${t('tableLabel')} ${esc(table.code)}</strong>${btn('table-qr',t('tableQr'),'qr','',`data-id="${table.id}" ${register?'':'disabled'}`)}</article>`).join('')}</div></section>`;
   return `<section class="dining-page">${heading}${tools}${tableSquares()}</section>`;
 }
-function saveDiningDraft() { diningDrafts.set(selectedTableId||'counter',{cart:structuredClone(cart),pos:structuredClone(pos),currency:posCurrency,orderId,wholesale}); }
+function saveDiningDraft() { diningDrafts.set(selectedTableId||'counter',{cart:structuredClone(cart),pos:{clientId:pos.clientId||'',discount:pos.discount||'0',notes:pos.notes||''},currency:posCurrency,orderId,wholesale}); }
 function selectDiningTable(id) {
   const table=diningTables().find(t=>t.id===id);
   if(id&&!table)return;
