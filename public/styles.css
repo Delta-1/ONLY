@@ -3312,7 +3312,7 @@ dialog[open] {
   }
   .catalog-area, .no-catalog .catalog-area { min-height: 0; overflow: auto; }
   .catalog-area > :not(.product-grid) { flex-shrink: 0; }
-  .product-grid { min-height: 0; overflow: auto; padding: 4px; }
+  .product-grid { min-height: 0; overflow: auto; padding: 4px; grid-auto-rows: max-content; }
   .cart-panel {
     position: static;
     min-height: 0;

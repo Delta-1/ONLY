@@ -139,7 +139,7 @@ try {
 
   // A normal notebook viewport must keep checkout on screen without scrolling
   // the document. More products and cart items scroll within their own panels.
-  for (const layout of ["essential", "classic"]) {
+  for (const layout of ["clean", "classic"]) {
     await p.locator("html").evaluate((el, value) => { el.dataset.layout = value; }, layout);
     for (const [width, height] of [[1920, 1080], [1366, 768], [1280, 720], [1024, 768], [800, 600]]) {
       await p.setViewportSize({ width, height });
@@ -148,14 +148,16 @@ try {
         const checkout = document.querySelector('[data-action="checkout"]').getBoundingClientRect();
         const footer = document.querySelector('.catalog-footer').getBoundingClientRect();
         const panel = document.querySelector('.cart-panel');
+        const cards = [...document.querySelectorAll('.product-card')].map(el => el.getBoundingClientRect());
         return {
           documentFits: root.scrollHeight <= innerHeight + 1 && root.scrollWidth <= innerWidth,
           checkoutFits: checkout.top >= 0 && checkout.bottom <= innerHeight + 1,
           footerFits: footer.bottom <= innerHeight + 1,
           cartFits: panel.scrollHeight <= panel.clientHeight + 1,
+          cardsDoNotOverlap: cards.every((a, i) => cards.slice(i + 1).every(b => Math.min(a.right, b.right) - Math.max(a.left, b.left) <= 1 || Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) <= 1)),
         };
       });
-      assert.deepEqual(fit, { documentFits: true, checkoutFits: true, footerFits: true, cartFits: true }, `${layout} ${width}x${height}`);
+      assert.deepEqual(fit, { documentFits: true, checkoutFits: true, footerFits: true, cartFits: true, cardsDoNotOverlap: true }, `${layout} ${width}x${height}`);
     }
   }
   // A much smaller effective viewport (for example after increasing browser
@@ -165,7 +167,7 @@ try {
   assert.ok(await p.locator('[data-action="checkout"]').evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1; }));
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await p.setViewportSize({ width: 1366, height: 768 });
-  await p.locator('html').evaluate(el => { el.dataset.layout = 'essential'; });
+  await p.locator('html').evaluate(el => { el.dataset.layout = 'clean'; });
   await p.screenshot({ path: join(artifacts, 'pdv-notebook-100.png'), animations: 'disabled' });
   await p.setViewportSize({ width: 1440, height: 1000 });
 
