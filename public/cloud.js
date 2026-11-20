@@ -11,7 +11,12 @@ export async function request(path,body){
  let response;try{response=await fetch(endpoint,{credentials:cloud?'omit':'same-origin',headers,...(body?{method:'POST',body:JSON.stringify(body)}:{})});}catch{throw Error('offline');}
  const json=await response.json().catch(()=>({error:'serverError'}));
  if(!response.ok){if(cloud&&response.status===401&&json.error==='loginRequired')localStorage.removeItem(tokenKey);throw Error(json.error||'serverError');}
- if(cloud&&json.token&&['/api/login','/api/signup'].includes(path))localStorage.setItem(tokenKey,json.token);
+ if(cloud&&json.token&&['/api/login','/api/signup','/api/linky/redeem'].includes(path))localStorage.setItem(tokenKey,json.token);
  if(cloud&&path==='/api/logout')localStorage.removeItem(tokenKey);
  return json;
 }
+// "Entrar com LINKY": começa na função (que guarda o pedido em cookie próprio) e volta com um
+// bilhete que só esta aba consegue trocar pela sessão, graças ao valor guardado aqui.
+const bindKey='only.linky.bind';
+export function linkyStart(){if(!cloud)return;const bytes=crypto.getRandomValues(new Uint8Array(24)),bind=btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');try{sessionStorage.setItem(bindKey,bind);}catch{}location.href=`${cloud.url}/functions/v1/only/api/linky/start?bind=${bind}`;}
+export function linkyReturn(){const h=new URLSearchParams(location.hash.startsWith('#/')?'':location.hash.slice(1)),ticket=h.get('linky_login'),error=h.get('linky_error');if(!ticket&&!error)return null;history.replaceState(null,'',location.pathname+location.search);let bind='';try{bind=sessionStorage.getItem(bindKey)||'';sessionStorage.removeItem(bindKey);}catch{}return {ticket,bind,error,email:h.get('email')||''};}

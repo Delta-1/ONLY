@@ -1,5 +1,5 @@
 import { createFeedback } from "./feedback.js";
-import { cloud, request, routeUrl, qrUrl } from "./cloud.js";
+import { cloud, request, routeUrl, qrUrl, linkyStart, linkyReturn } from "./cloud.js";
 import { svg } from "./icons.js";
 import {
   currencies,
@@ -173,7 +173,7 @@ function header() {
   return `<header class="topbar">${brand()}<div class="top-actions"><span class="connection ${navigator.onLine ? "" : "offline"}"><i></i>${t(navigator.onLine ? "online" : "offline")}</span>${!publicMode && mode === "pos" ? posCurrencyPicker() : ""}${languagePicker()}${publicMode === "waiter" ? btn("waiter-tables",t("tables"),"table","",`aria-label="${t("tables")}"`) : ""}${publicMode ? "" : `${btn("registers", t("cash"), "wallet", reg ? "soft" : "", `aria-label="${t("cash")}" title="${esc(reg ? `${t("cash")} · ${reg.name}` : t("cash"))}"`)} ${mode === "erp" ? btn("pos", t("pos"), "cart", "primary") : ""}${diningIsEnabled() ? btn("tables",t("tables"),"table","restaurant-switch",`aria-label="${t("tables")}"`) : ""}${btn("menu", t("menu"), "menu", "menu-button")}`}</div></header>`;
 }
 function auth() {
-  app.innerHTML = `<div class="auth-shell"><aside class="auth-visual"><span class="wordmark">only<i>®</i></span><div><small>PDV + ERP</small><h1>${esc(t("loginPitch")).replace("\n", "<br>")}</h1><p>${t("loginHint")}</p><div class="auth-pills"><span>${svg("cart")} ${t("pos")}</span><span>${svg("store")} ${t("catalog")}</span><span>${svg("chart")} ${t("reports")}</span></div></div><footer>onlysystem · 2026</footer><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></aside><section class="auth-panel"><div class="auth-top">${languagePicker()}${btn("join", t("join"), "smartphone")}</div><div class="auth-form"><span class="eyebrow">ONLY SYSTEM</span><h2>${t(authTab === "login" ? "loginTitle" : "signup")}</h2><p>${t(authTab === "login" ? "loginHint" : "signupHint")}</p><div class="segmented">${btn("auth-login", t("login"), "", "", `aria-pressed="${authTab === "login"}"`)}${btn("auth-signup", t("signup"), "", "", `aria-pressed="${authTab === "signup"}"`)}</div><form data-form="${authTab}">${authTab === "signup" ? field(t("name"), "name", "", "text", 'required autocomplete="name"') + field(t("businessName"), "businessName", "", "text", 'required autocomplete="organization"') : ""}${field(t("email"), "email", "", "email", 'required autocomplete="username"')}${field(t("password"), "password", "", "password", `required minlength="8" maxlength="128" autocomplete="${authTab === "signup" ? "new-password" : "current-password"}"`)}<p class="form-error" data-inline-error hidden></p><button class="btn primary wide" type="submit">${t(authTab === "login" ? "login" : "signup")}${svg("chevron")}</button></form></div><small class="auth-foot">ONLY · PDV & ERP</small></section></div>`;
+  app.innerHTML = `<div class="auth-shell"><aside class="auth-visual"><span class="wordmark">only<i>®</i></span><div><small>PDV + ERP</small><h1>${esc(t("loginPitch")).replace("\n", "<br>")}</h1><p>${t("loginHint")}</p><div class="auth-pills"><span>${svg("cart")} ${t("pos")}</span><span>${svg("store")} ${t("catalog")}</span><span>${svg("chart")} ${t("reports")}</span></div></div><footer>onlysystem · 2026</footer><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></aside><section class="auth-panel"><div class="auth-top">${languagePicker()}${btn("join", t("join"), "smartphone")}</div><div class="auth-form"><span class="eyebrow">ONLY SYSTEM</span><h2>${t(authTab === "login" ? "loginTitle" : "signup")}</h2><p>${t(authTab === "login" ? "loginHint" : "signupHint")}</p><div class="segmented">${btn("auth-login", t("login"), "", "", `aria-pressed="${authTab === "login"}"`)}${btn("auth-signup", t("signup"), "", "", `aria-pressed="${authTab === "signup"}"`)}</div><form data-form="${authTab}">${authTab === "signup" ? field(t("name"), "name", "", "text", 'required autocomplete="name"') + field(t("businessName"), "businessName", "", "text", 'required autocomplete="organization"') : ""}${field(t("email"), "email", "", "email", 'required autocomplete="username"')}${field(t("password"), "password", "", "password", `required minlength="8" maxlength="128" autocomplete="${authTab === "signup" ? "new-password" : "current-password"}"`)}<p class="form-error" data-inline-error hidden></p><button class="btn primary wide" type="submit">${t(authTab === "login" ? "login" : "signup")}${svg("chevron")}</button></form>${cloud && authTab === "login" ? `<div class="auth-or"><span>${({pt:"ou",es:"o",en:"or"})[lang()]||"ou"}</span></div>${btn("linky", "Entrar com LINKY", "", "wide linky-btn")}` : ""}</div><small class="auth-foot">ONLY · PDV & ERP</small></section></div>`;
   if (staticSite) {
     $(".auth-form > p").insertAdjacentHTML("afterend", `<p class="notice" role="status">${t("serverConnectionNeeded")}</p>`);
     $("[data-action=join]").hidden = true;
@@ -1053,6 +1053,7 @@ function printReport(cash = false) {
 }
 
 const actions = {
+  linky: () => linkyStart(),
   "auth-login": () => {
     authTab = "login";
     auth();
@@ -1738,6 +1739,17 @@ window.addEventListener("beforeunload", (e) => {
 async function boot() {
   if (staticSite) { setLanguage(lang()); auth(); return; }
   setLanguage(lang());
+  const linkyBack = !publicMode && path[0] !== "join" ? linkyReturn() : null;
+  if (linkyBack?.error) {
+    authTab = "login"; auth();
+    if (linkyBack.email) { const input = $('.auth-form input[name="email"]'); if (input) input.value = linkyBack.email; }
+    const inline = $("[data-inline-error]"); if (inline) { inline.textContent = errorText("linky_" + linkyBack.error); inline.hidden = false; }
+    return;
+  }
+  if (linkyBack?.ticket) {
+    try { await api("/api/linky/redeem", { ticket: linkyBack.ticket, bind: linkyBack.bind }); }
+    catch (e) { authTab = "login"; auth(); const inline = $("[data-inline-error]"); if (inline) { inline.textContent = errorText(e.message); inline.hidden = false; } return; }
+  }
   if (path[0] === "join") {
     joinPage();
     return;

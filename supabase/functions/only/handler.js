@@ -1,4 +1,5 @@
 import {defaults,initialState,mutate,publicCatalog,publicMutation,resolveLink,workspace,fail,text,id,hex,owner,openRegister,diningPublic,diningPublicOrder} from './domain.js';
+import {seal,unseal,readCookie,COOKIE,PENDING_MS,TICKET_MS,BIND} from './linky.js';
 const enc=new TextEncoder();
 export async function digest(value){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(value))),v=>v.toString(16).padStart(2,'0')).join('');}
 const checkPassword=p=>{if(typeof p!=='string'||p.length<8||p.length>128)fail('passwordLength');return p;};
@@ -9,7 +10,7 @@ export async function closingPinHash(pin){if(typeof pin!=='string'||!/^\d{4,8}$/
 export async function closingPinMatches(pin,encoded){if(typeof pin!=='string'||!/^\d{4,8}$/.test(pin))return false;return encoded?passwordMatches(`only-pin:${pin}`,encoded):await digest(pin)===await digest('1234');}
 const safeUser=a=>({id:a.id,business:a.business,email:a.email,name:a.name,role:a.role});
 const checkedEmail=e=>{const v=text(e).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))fail('invalidEmail');return v;};
-export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY/'}){
+export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY/',linky=null,sealSecret=''}){
  const pageOrigin=new URL(publicBase).origin;
  const limit=async(key,max)=>{const r=await rpc('rate_limit',{key:await digest(key),maximum:max});if(!r?.allowed)fail('rateLimited',429);};
  const findWorkspace=async(params)=>{const row=await rpc('read_workspace',params);if(!row)fail('notFound',404);return row;};
@@ -28,6 +29,29 @@ export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY
    if(path==='/api/qr'&&req.method==='GET'){
     await limit(`qr:${ip}`,300);const relative=url.searchParams.get('path')||'';if(!/^\/(store|mobile|collaborate|waiter|table)\/[A-Za-z0-9_-]+$/.test(relative))fail('invalidLink');
     return new Response(await qr(`${publicBase}#${relative}`),{headers:{...headers,'Content-Type':'image/svg+xml'}});
+   }
+   if(req.method==='GET'&&['/api/linky/start','/api/linky/callback'].includes(path)){
+    // Navegação de página inteira (sem Origin): redireciona, nunca devolve JSON.
+    const cookiePath=url.pathname.slice(0,apiStart)+'/api/linky',secureCookie=(value,age)=>`${COOKIE}=${value}; Path=${cookiePath}; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
+    const go=(location,cookie)=>new Response(null,{status:303,headers:{Location:location,'Cache-Control':'no-store','Referrer-Policy':'no-referrer',...(cookie?{'Set-Cookie':cookie}:{})}});
+    const back=(hash,cookie)=>go(`${publicBase}#${hash}`,cookie);
+    if(!linky||!sealSecret)return back('linky_error=indisponivel');
+    await limit(`linky:${ip}`,60);
+    if(path==='/api/linky/start'){const bind=url.searchParams.get('bind')||'';if(!BIND.test(bind))return back('linky_error=falhou');
+     try{const {url:authorize,pending}=await linky.start();return go(authorize,secureCookie(await seal(sealSecret,'pending',{...pending,bind:await digest(bind),at:Date.now()}),PENDING_MS/1000));}catch{return back('linky_error=indisponivel');}}
+    const pending=await unseal(sealSecret,'pending',readCookie(req,COOKIE),PENDING_MS),clear=secureCookie('',0);
+    if(!pending)return back('linky_error=expirado',clear);if(url.searchParams.get('error'))return back('linky_error=cancelado',clear);
+    let who;try{who=await linky.finish(url.search,pending);}catch{return back('linky_error=falhou',clear);}
+    if(!who.email||!who.emailVerified)return back('linky_error=email',clear);
+    const email=text(who.email).toLowerCase(),account=await rpc('account_email',{email});
+    if(!account)return back(`linky_error=conta&email=${encodeURIComponent(email)}`,clear);
+    return back(`linky_login=${await seal(sealSecret,'ticket',{id:account.id,bind:pending.bind,at:Date.now()})}`,clear);
+   }
+   if(post&&path==='/api/linky/redeem'){
+    await limit(`linky-redeem:${ip}`,60);const ticket=sealSecret&&typeof b.bind==='string'&&BIND.test(b.bind)?await unseal(sealSecret,'ticket',b.ticket,TICKET_MS):null;
+    if(!ticket||ticket.bind!==await digest(b.bind))fail('linkyExpired',400);
+    const raw=hex(32),hash=await digest(raw);await rpc('new_session',{id:ticket.id,hash});const account=await rpc('account_session',{hash});if(!account)fail('loginRequired',401);
+    return send({token:raw,user:safeUser(account)});
    }
    if(post&&['/api/signup','/api/login'].includes(path)){
     const email=checkedEmail(b.email);await limit(`login-ip:${ip}`,80);await limit(`login-email:${email}`,18);

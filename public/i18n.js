@@ -484,6 +484,13 @@ const entries = {
   ],
 };
 const errors = {
+  linkyExpired: ["O login com LINKY expirou. Tente de novo.", "El acceso con LINKY expiró. Inténtalo de nuevo.", "LINKY sign-in expired. Try again."],
+  linky_indisponivel: ["O login com LINKY ainda não está disponível. Use e-mail e senha.", "El acceso con LINKY aún no está disponible. Usa correo y contraseña.", "LINKY sign-in is not available yet. Use email and password."],
+  linky_cancelado: ["Login com LINKY cancelado.", "Acceso con LINKY cancelado.", "LINKY sign-in cancelled."],
+  linky_expirado: ["O login com LINKY expirou. Tente de novo.", "El acceso con LINKY expiró. Inténtalo de nuevo.", "LINKY sign-in expired. Try again."],
+  linky_email: ["Sua conta LINKY precisa ter um e-mail confirmado.", "Tu cuenta LINKY necesita un correo confirmado.", "Your LINKY account needs a confirmed email."],
+  linky_conta: ["Não há conta ONLY com este e-mail. Crie sua empresa ou peça acesso ao administrador; depois é só entrar com LINKY.", "No hay cuenta ONLY con este correo. Crea tu empresa o pide acceso al administrador; luego entra con LINKY.", "There is no ONLY account with this email. Create your business or ask the admin for access, then sign in with LINKY."],
+  linky_falhou: ["Não foi possível entrar com LINKY. Tente de novo.", "No fue posible entrar con LINKY. Inténtalo de nuevo.", "Could not sign in with LINKY. Try again."],
   invalidTables: ["Informe de 1 a 200 mesas.", "Introduce entre 1 y 200 mesas.", "Enter between 1 and 200 tables."],
   invalidColor: ["Escolha uma cor válida para a moldura.", "Elige un color válido para el marco.", "Choose a valid frame color."],
   openTabs: ["Há comandas abertas. Finalize ou cancele os pedidos antes de fechar o caixa ou desativar mesas.", "Hay cuentas abiertas. Finaliza o cancela los pedidos antes de cerrar la caja o desactivar mesas.", "There are open tabs. Settle or cancel them before closing the register or disabling tables."],

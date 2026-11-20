@@ -3489,3 +3489,6 @@ dialog[open] {
 }
 
 .menu-only .product-card:hover { transform: none; border-color: var(--line); }
+/* Entrar com LINKY */
+.auth-or{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted,#8b8b93);font-size:12px}.auth-or:before,.auth-or:after{content:"";flex:1;height:1px;background:currentColor;opacity:.3}
+.btn.linky-btn{background:#0d0d10;color:#fff;border:1px solid rgba(255,255,255,.18)}.btn.linky-btn:before{content:"L";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#7c3aed;color:#fff;font-weight:900;font-size:12px;margin-right:8px}
