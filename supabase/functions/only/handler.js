@@ -32,7 +32,7 @@ export function createHandler({rpc,qr,publicBase='https://delta-1.github.io/ONLY
    }
    if(req.method==='GET'&&['/api/linky/start','/api/linky/callback'].includes(path)){
     // Navegação de página inteira (sem Origin): redireciona, nunca devolve JSON.
-    const cookiePath=url.pathname.slice(0,apiStart)+'/api/linky',secureCookie=(value,age)=>`${COOKIE}=${value}; Path=${cookiePath}; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
+    const cookiePath='/functions/v1/only/api/linky',secureCookie=(value,age)=>`${COOKIE}=${value}; Path=${cookiePath}; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
     const go=(location,cookie)=>new Response(null,{status:303,headers:{Location:location,'Cache-Control':'no-store','Referrer-Policy':'no-referrer',...(cookie?{'Set-Cookie':cookie}:{})}});
     const back=(hash,cookie)=>go(`${publicBase}#${hash}`,cookie);
     if(!linky||!sealSecret)return back('linky_error=indisponivel');
